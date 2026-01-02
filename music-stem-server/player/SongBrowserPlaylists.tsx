@@ -12,7 +12,7 @@ interface SongBrowserPlaylistsProps {
   songSearchQuery: string;
   setSongSearchQuery: (query: string) => void;
   playlists: Playlist[];
-  addToPlaylist: (playlist: Playlist, song: SongData) => void;
+  addToPlaylist: (playlist: Playlist, song: SongData, createRequest?: boolean) => void;
   removeFromPlaylist: (playlist: Playlist, song: SongData) => void;
   selectedPlaylistIndex: number;
   setSelectedPlaylistIndex: (index: number) => void;
@@ -74,15 +74,13 @@ export default function SongBrowserPlaylists({
               }}>
                 <i className="fa-solid fa-play" /> Select
               </button>
-              {!isRequestsPlaylistSelected &&
-                <button onClick={() => {
-                  if (!playlists[selectedPlaylistIndex].songs.includes(song)) {
-                    addToPlaylist(playlists[selectedPlaylistIndex], song);
-                  }
-                }}>
-                  <i className="fa-solid fa-plus" /> Queue
-                </button>
-              }
+              <button onClick={() => {
+                if (!playlists[selectedPlaylistIndex].songs.includes(song)) {
+                  addToPlaylist(playlists[selectedPlaylistIndex], song, isRequestsPlaylistSelected);
+                }
+              }}>
+                <i className="fa-solid fa-plus" /> Queue
+              </button>
             </>
           )}
         />

@@ -137,6 +137,7 @@ export interface SongData {
   title: string;
   album: string | null;
   duration: number;
+  track?: number | null;
   stemsPath: string;
   downloadPath: string | null;
   isVideo: number | null;

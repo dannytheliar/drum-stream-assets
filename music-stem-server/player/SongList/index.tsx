@@ -40,7 +40,7 @@ export default function SongList({ songs, selectedSong, showTimeAgo, showRuntime
               <p className="artist">{song.artist}</p>
             </div>
             <div>
-              <p className="album">{song.album}</p>
+              <p className="album">{song.album} {song.track ? `- ${song.track}` : ''}</p>
               {song.requester && (
                 <p className={`requesterName ${activeViewers?.find(viewer => viewer.display.toLowerCase() === song.requester?.toLowerCase())?.online ? 'online' : 'offline'}`}>
                   {song.requester} (#{('fulfilledToday' in song ? song.fulfilledToday || 0 : 0) + 1})

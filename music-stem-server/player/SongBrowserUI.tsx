@@ -143,11 +143,15 @@ export default function SongBrowserUI() {
     setSelectedSong(songList[nextIndex]);
   };
 
-  const addToPlaylist = (playlist: Playlist, song: SongData) => {
-    setPlaylists(playlists.map(p => {
-      if (p === playlist) return { ...p, songs: p.songs.concat([song]) };
-      return p;
-    }));
+  const addToPlaylist = (playlist: Playlist, song: SongData, createRequest?: boolean) => {
+    if (createRequest) {
+      broadcast({ type: 'create_song_request_for_song', songId: song.id });
+    } else {
+      setPlaylists(playlists.map(p => {
+        if (p === playlist) return { ...p, songs: p.songs.concat([song]) };
+        return p;
+      }));
+    }
   };
 
   const removeFromPlaylist = (playlist: Playlist, song: SongData) => {

@@ -322,6 +322,7 @@ export default class SongRequestModule {
     this.wss.registerHandler('song_playback_completed', this.handleSongPlaybackCompleted);
     this.wss.registerHandler('song_request_removed', this.handleSongPlaybackCompleted);
     this.wss.registerHandler('song_changed', this.handleSongChanged);
+    this.wss.registerHandler('create_song_request_for_song', this.handleCreateSongRequestForSong);
 
     this.jobs = new JobInterface();
     this.jobs.listen(Queues.SONG_REQUEST_DOWNLOADED, this.handleSongRequestDownloaded);
@@ -727,6 +728,20 @@ export default class SongRequestModule {
     // Notify user when their song request is starting
     if (payload.song.requester && payload.song.status === 'ready') {
       await this.client.sendTwitchMessage(`@${payload.song.requester} ${payload.song.artist} - ${payload.song.title} is starting!`);
+    }
+  };
+
+  private handleCreateSongRequestForSong = async (payload: WebSocketMessage<'create_song_request_for_song'>) => {
+    const songRequest = await db.insertInto('songRequests').values({
+      songId: payload.songId,
+      query: '',
+      priority: 0,
+      noShenanigans: 0,
+      status: 'ready',
+      requester: DEFAULT_REQUESTER_NAME,
+    }).returning('id as id').executeTakeFirst();
+    if (songRequest) {
+      this.wss.broadcast({ type: 'song_request_added', songRequestId: songRequest.id });
     }
   };
 }
