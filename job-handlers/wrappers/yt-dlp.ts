@@ -1,16 +1,19 @@
 import { spawn } from 'child_process';
 import { join } from 'path';
+import { randomUUID } from 'crypto';
 
 interface YouTubeDownloadOptions {
   maxDuration: number,
   minViews: number,
 }
 
-export function downloadFromYouTube(url: URL, outputPath: string, uuid: string, options: Partial<YouTubeDownloadOptions>) {
+export function downloadFromYouTube(url: URL, outputPath: string, options: Partial<YouTubeDownloadOptions>) {
   if (url.pathname.startsWith('/channel/') || url.pathname.startsWith('/playlist')) {
+    // TODO: allow playlists
     throw new Error('NO_PLAYLISTS');
   }
 
+  const uuid = randomUUID();
   return new Promise<string>((resolve, reject) => {
     const cmd = spawn('yt-dlp',
       [

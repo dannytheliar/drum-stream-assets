@@ -10,6 +10,7 @@ export type Payloads = {
     minViews?: number,
     ignoreDuplicates?: boolean,
     requester?: string,
+    allowPlaylists?: boolean,
   },
   'song_request_downloaded': {
     id: number,

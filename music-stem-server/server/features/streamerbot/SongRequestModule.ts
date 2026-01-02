@@ -25,6 +25,7 @@ interface SongRequestOptions {
   twitchRewardId?: string,
   twitchRedemptionId?: string,
   songRequestToReplaceId?: number,
+  allowPlaylists?: boolean,
 }
 
 const SONG_REQUEST_MAX_DURATION = 60 * 6;
@@ -316,7 +317,7 @@ export default class SongRequestModule {
       }
     });
 
-    this.wss.registerHandler('song_request', payload => this.execute(payload.query, DEFAULT_REQUESTER_NAME, { maxDuration: 12000 }));
+    this.wss.registerHandler('song_request', payload => this.execute(payload.query, DEFAULT_REQUESTER_NAME, { maxDuration: 12000, allowPlaylists: true }));
     this.wss.registerHandler('song_playback_started', this.handleSongPlaybackStarted);
     this.wss.registerHandler('song_playback_completed', this.handleSongPlaybackCompleted);
     this.wss.registerHandler('song_request_removed', this.handleSongPlaybackCompleted);
@@ -480,6 +481,7 @@ export default class SongRequestModule {
         query,
         maxDuration: options.maxDuration,
         minViews: options.minViews,
+        allowPlaylists: options.allowPlaylists,
         requester: requesterName,
       });
     }

@@ -115,6 +115,9 @@ export type WebSocketPlayerMessage = {
   type: 'song_request_removed',
   songRequestId: number,
 } | {
+  type: 'create_song_request_for_song',
+  songId: number,
+} | {
   type: 'guess_the_song_round_complete',
   winner: string | undefined,
   time: number | undefined,

@@ -15,35 +15,37 @@ const i = new JobInterface();
 
 await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
   console.log('SONG_REQUEST_CREATED', msg);
-  const uuid = randomUUID();
 
-  const downloadedSongPath = await downloadSong(msg.query, Paths.DOWNLOADS_PATH, uuid, {
+  const downloadedSongPaths = await downloadSong(msg.query, Paths.DOWNLOADS_PATH, {
     maxDuration: msg.maxDuration,
     minViews: msg.minViews,
+    allowPlaylists: msg.allowPlaylists,
   });
-  const tags = await getSongTags(downloadedSongPath);
-  if (msg.maxDuration && tags.duration > msg.maxDuration) {
-    throw new Error('TOO_LONG');
+  for (const path of downloadedSongPaths) {
+    const tags = await getSongTags(path);
+    if (msg.maxDuration && tags.duration > msg.maxDuration) {
+      throw new Error('TOO_LONG');
+    }
+
+    const acoustidRecordingId = await getAcoustidRecordingId(path);
+    let lyricsPath: string | undefined = path.substring(0, path.lastIndexOf('.')) + '.lrc';
+    if (!existsSync(lyricsPath)) lyricsPath = undefined;
+
+    await i.publish(Queues.SONG_REQUEST_DOWNLOADED, {
+      id: msg.id,
+      path,
+      ignoreDuplicates: msg.ignoreDuplicates,
+      requester: msg.requester,
+      acoustidRecordingId,
+      lyricsPath: lyricsPath?.replace(Paths.DOWNLOADS_PATH, '').replace(/^[/\\]+/, ''),
+
+      artist: String(tags.artist) || '',
+      title: String(tags.title) || '',
+      album: String(tags.album) || '',
+      track: Number(tags.track.no),
+      duration: Number(tags.duration),
+    });
   }
-
-  const acoustidRecordingId = await getAcoustidRecordingId(downloadedSongPath);
-  let lyricsPath: string | undefined = downloadedSongPath.substring(0, downloadedSongPath.lastIndexOf('.')) + '.lrc';
-  if (!existsSync(lyricsPath)) lyricsPath = undefined;
-
-  await i.publish(Queues.SONG_REQUEST_DOWNLOADED, {
-    id: msg.id,
-    path: downloadedSongPath,
-    ignoreDuplicates: msg.ignoreDuplicates,
-    requester: msg.requester,
-    acoustidRecordingId,
-    lyricsPath: lyricsPath?.replace(Paths.DOWNLOADS_PATH, '').replace(/^[/\\]+/, ''),
-
-    artist: String(tags.artist) || '',
-    title: String(tags.title) || '',
-    album: String(tags.album) || '',
-    track: Number(tags.track.no),
-    duration: Number(tags.duration),
-  });
 });
 
 await i.listen(Queues.SONG_REQUEST_DEDUPLICATED, async (msg) => {
@@ -51,7 +53,7 @@ await i.listen(Queues.SONG_REQUEST_DEDUPLICATED, async (msg) => {
 
   const dstPath = msg.path.endsWith('.webm') ? msg.path.replace(/\.webm$/, '.mp4') : msg.path;
   console.log('Running ffmpeg-normalize', msg.path, dstPath);
-  execSync(`ffmpeg-normalize "${msg.path}" -o "${dstPath}" -c:a aac -nt rms -t -16 -f`);
+  execSync(`uv run ffmpeg-normalize "${msg.path}" -o "${dstPath}" -c:a aac -nt rms -t -16 -f`);
   console.log('Running demucs', dstPath);
   const stemsPath = await demucs(dstPath, Paths.DEMUCS_OUTPUT_PATH, msg.ignoreDuplicates);
 
