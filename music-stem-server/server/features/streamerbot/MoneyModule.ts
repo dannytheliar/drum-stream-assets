@@ -27,7 +27,7 @@ export default class MoneyModule {
   private raffleValue = 0;
   private raffleTimer?: NodeJS.Timeout;
   private static readonly RAFFLE_DURATION_SECONDS = 60;
-  private static readonly RAFFLE_DEFAULT_VALUE = 100;
+  private static readonly RAFFLE_DEFAULT_VALUE = 1000;
   private static readonly JACKPOT_SOCIALISM_THRESHOLD = 50000;
 
   private gambleCooldowns: Map<string, number> = new Map();
@@ -52,6 +52,8 @@ export default class MoneyModule {
     this.client.registerCommandHandler('!cancelraffle', this.handleCancelRaffleCommand);
     this.client.registerCommandHandler('!raffle', this.handleRaffleCommand);
     this.client.registerCommandHandler('!jackpot', this.handleJackpotCommand);
+    this.client.registerCommandHandler('!resetjackpot', this.handleResetJackpotCommand);
+    this.client.registerCommandHandler('!resetbeffs', this.handleResetBeffsCommand);
     this.client.registerCommandHandler('!gamble', this.handleGambleCommand);
     this.client.registerCommandHandler('!give', this.handleGiveCommand);
   }
@@ -100,11 +102,14 @@ export default class MoneyModule {
     this.raffleIsActive = true;
     let raffleIsJackpot = false;
 
-    if (payload.message && parseInt(payload.message)) {
-      this.raffleValue = parseInt(payload.message) || 0;
-    }
-    if (!this.raffleValue) {
+    if (payload.message.trim().toLowerCase() === 'jackpot') {
       raffleIsJackpot = true;
+    } else {
+      if (parseInt(payload.message)) {
+        this.raffleValue = parseInt(payload.message);
+      } else {
+        this.raffleValue = MoneyModule.RAFFLE_DEFAULT_VALUE;
+      }
     }
 
     this.client.sendTwitchMessage(`Raffle started! Type !join to enter. You have ${MoneyModule.RAFFLE_DURATION_SECONDS} seconds!`);
@@ -247,5 +252,19 @@ export default class MoneyModule {
       .where(sql`LOWER(name)`, '=', payload.user.toLowerCase())
       .execute();
     this.client.sendTwitchMessage(`@${payload.user} You gave ${recipient} ${amount} Beff${amount !== 1 ? 's' : ''}!`);
+  };
+
+  private handleResetJackpotCommand = () => {
+    this.gambleMoneyLost = 0;
+    this.client.sendTwitchMessage('The jackpot has been reset to 0!');
+  };
+
+  private handleResetBeffsCommand = async (payload: CommandPayload) => {
+    if (payload.message !== 'YEP') {
+      this.client.sendTwitchMessage('This will reset all of everyone\'s Beffs, do !resetbeffs YEP if you\'re sure!');
+      return;
+    }
+    await db.updateTable('users').set({ money: 0 }).where('name', '!=', 'danny_the_liar').execute();
+    this.client.sendTwitchMessage('The economy is in shambles, everybody now has 0 Beffs. o7');
   };
 }
