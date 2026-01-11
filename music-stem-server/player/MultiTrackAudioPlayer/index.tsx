@@ -54,7 +54,6 @@ export default function MultiTrackAudioPlayer({
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      console.log('key', e.key);
       if (e.key === 'F20') {
         setVolume(v => Math.max(v - 0.02, 0));
       } else if (e.key === 'F21') {
