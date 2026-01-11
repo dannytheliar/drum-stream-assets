@@ -15,7 +15,6 @@ interface MultiTrackAudioPlayerProps {
   isPlaying?: boolean;
   shuffle?: boolean;
   playbackRate?: number;
-  volume?: number;
 
   onSongPlayed: (t: number) => void;
   onSongPaused: () => void;
@@ -29,12 +28,11 @@ interface MultiTrackAudioPlayerProps {
   onShuffleChanged: (isShuffleEnabled: boolean) => void;
   onAutoplayChanged: (isAutoplayEnabled: boolean) => void;
   onPlaybackRateChanged: (rate: number) => void;
-  onVolumeChanged: (volume: number) => void;
 }
 
 export default function MultiTrackAudioPlayer({
   autoplay, song, mutedTrackNames,
-  isPlaying, shuffle, playbackRate, volume,
+  isPlaying, shuffle, playbackRate,
   onSongPlayed,
   onSongPaused,
   onSongStarted,
@@ -47,12 +45,29 @@ export default function MultiTrackAudioPlayer({
   onShuffleChanged,
   onAutoplayChanged,
   onPlaybackRateChanged,
-  onVolumeChanged,
 }: MultiTrackAudioPlayerProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [sources, setSources] = useState<Howl[]>([]);
+  const [volume, setVolume] = useState(1);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      console.log('key', e.key);
+      if (e.key === 'F20') {
+        setVolume(v => Math.max(v - 0.02, 0));
+      } else if (e.key === 'F21') {
+        setVolume(v => Math.min(v + 0.02, 1));
+      } else if (e.key === 'F22') {
+        setVolume(0);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => {
+      document.removeEventListener('keydown', handler);
+    };
+  }, []);
 
   const play = () => {
     if (!isLoaded) {
@@ -107,8 +122,8 @@ export default function MultiTrackAudioPlayer({
     });
   }, [playbackRate]);
   useEffect(() => {
-    sources.forEach(howl => {
-      howl.volume(volume || 1.0);
+    sources.forEach((howl, i) => {
+      howl.volume(volume);
     });
   }, [volume]);
 
@@ -315,8 +330,8 @@ export default function MultiTrackAudioPlayer({
       </div>
       <div style={{ marginTop: 12 }}>
         <label className="range-label">
-          <span onClick={() => onVolumeChanged(1)} style={{display: 'inline-block', width: '7em'}}>
-            Volume {Math.round((volume || 1) * 100)}%
+          <span onClick={() => setVolume(1)} style={{display: 'inline-block', width: '7em'}}>
+            Volume {Math.round(volume * 100)}%
           </span>
           <input
             type="range"
@@ -325,7 +340,6 @@ export default function MultiTrackAudioPlayer({
             min={0.01}
             max={1.0}
             style={{ width: 'calc(80% - 48px)' }}
-            onChange={(evt) => onVolumeChanged(evt.currentTarget.valueAsNumber)}
           />
         </label>
       </div>

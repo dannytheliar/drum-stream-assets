@@ -19,7 +19,6 @@ interface SavedState {
   songSearchQuery: string;
   mutedTrackNames: string[];
   playbackRate: number;
-  volume: number;
   playlists: Playlist[];
   selectedPlaylistIndex: number;
 }
@@ -29,7 +28,6 @@ const defaultSavedState: SavedState = {
   songSearchQuery: '',
   mutedTrackNames: [],
   playbackRate: 1,
-  volume: 1,
   playlists: DEFAULT_PLAYLISTS,
   selectedPlaylistIndex: 0,
 };
@@ -59,7 +57,6 @@ export default function SongBrowserUI() {
   const [songSearchQuery, setSongSearchQuery] = useState('');
   const [mutedTrackNames, setMutedTrackNames] = useState<Set<string>>(new Set());
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [volume, setVolume] = useState(1);
   const [playlists, setPlaylists] = useState<Playlist[]>(DEFAULT_PLAYLISTS);
   const [selectedPlaylistIndex, setSelectedPlaylistIndex] = useState(0);
   // Internal state
@@ -237,7 +234,6 @@ export default function SongBrowserUI() {
         setSongSearchQuery(loadedState.songSearchQuery);
         setMutedTrackNames(new Set(loadedState.mutedTrackNames));
         setPlaybackRate(loadedState.playbackRate);
-        setVolume(loadedState.volume);
         // don't load song requests from memory, those are server-authoritative
         setPlaylists(
           loadedState.playlists
@@ -259,7 +255,6 @@ export default function SongBrowserUI() {
         songSearchQuery,
         mutedTrackNames: Array.from(mutedTrackNames),
         playbackRate,
-        volume,
         playlists,
         selectedPlaylistIndex,
       });
@@ -272,7 +267,6 @@ export default function SongBrowserUI() {
     songSearchQuery,
     mutedTrackNames,
     playbackRate,
-    volume,
     playlists,
     selectedPlaylistIndex,
   ]);
@@ -403,8 +397,6 @@ export default function SongBrowserUI() {
             onAutoplayChanged={setIsAutoplayEnabled}
             playbackRate={playbackRate}
             onPlaybackRateChanged={handlePlaybackRateChanged}
-            volume={volume}
-            onVolumeChanged={setVolume} 
           />
         }
       </div>

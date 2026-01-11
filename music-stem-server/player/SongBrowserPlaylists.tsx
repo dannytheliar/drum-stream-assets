@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Downloader from './Downloader';
 import SongList from './SongList';
 import { SongData, StreamerbotViewer } from '../../shared/messages';
@@ -24,7 +25,7 @@ interface SongBrowserPlaylistsProps {
   refreshRequests?: () => void;
 }
 
-export default function SongBrowserPlaylists({
+function SongBrowserPlaylists({
   songs,
 
   isPlayingFromPlaylist, setIsPlayingFromPlaylist,
@@ -133,3 +134,5 @@ export default function SongBrowserPlaylists({
     </div>
   );
 }
+
+export default memo(SongBrowserPlaylists);
