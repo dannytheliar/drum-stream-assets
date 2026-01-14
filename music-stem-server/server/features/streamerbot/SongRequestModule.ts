@@ -613,6 +613,7 @@ export default class SongRequestModule {
 
   private prepareSongRequestQuery(query: string) {
     // If message has a URL, use only the URL
+    if (query.startsWith('www.')) query = 'https://' + query;
     const url = query.match(/https?:\/\/\S+/)?.[0];
 
     // Strip accidental inclusions on the original message if using that
