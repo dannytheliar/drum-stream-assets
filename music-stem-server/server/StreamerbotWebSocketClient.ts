@@ -16,10 +16,6 @@ export const TwitchRewardDurations: Streamerbot.TwitchRewardMeta<number> = {
   'Pin an Emote': 30000,
 };
 
-const TwitchRewardGroups: Streamerbot.TwitchRewardName[][] = [
-  ['Pick ONE Hat', 'Pick TWO Hats', 'Pick THREE Hats', 'Hat Wheel'],
-];
-
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
@@ -333,15 +329,6 @@ export default class StreamerbotWebSocketClient {
       rewardId: payload.data.reward.id,
       redemptionId: payload.data.id,
     });
-
-    // For mutually-exclusive rewards, pause everything in the category
-    // until this redemption expires
-    const mutuallyExclusiveGroup = TwitchRewardGroups.find(rewardNames => rewardNames.includes(rewardName));
-    if (mutuallyExclusiveGroup && TwitchRewardDurations[rewardName]) {
-      for (let otherRewardName of mutuallyExclusiveGroup) {
-        await this.pauseTwitchRedemption(otherRewardName, TwitchRewardDurations[rewardName]);
-      }
-    }
   }
 
   private async handleCommandTriggered(payload: StreamerbotEventPayload<"Command.Triggered">) {
