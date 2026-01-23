@@ -174,13 +174,13 @@ export default class MoneyModule {
 
   private handleGambleCommand = async (payload: CommandPayload) => {
     const user = await this.client.getUser(payload.user);
-    const amount = payload.message.trim().toLowerCase() === 'all' ? user.money : parseInt(payload.message.trim());
+    const amount = this.parseMoneyAmount(payload.message, user.money);
 
-    if (isNaN(amount)) {
-      this.client.sendTwitchMessage(`@${payload.user} Gamble some amount of your Beffs, or !gamble all`);;
-      return;
-    } else if (user.money === 0) {
+    if (user.money === 0) {
       this.client.sendTwitchMessage(`@${payload.user} You don't have any Beffs to gamble!`);
+      return;
+    } else if (!amount || isNaN(amount)) {
+      this.client.sendTwitchMessage(`@${payload.user} Gamble some amount of your Beffs, or !gamble all`);;
       return;
     } else if (amount < 0) {
       this.client.sendTwitchMessage(`@${payload.user} NEGATIVE NUMBERS AAAA`);
@@ -267,4 +267,25 @@ export default class MoneyModule {
     await db.updateTable('users').set({ money: 0 }).where('name', '!=', 'danny_the_liar').execute();
     this.client.sendTwitchMessage('The economy is in shambles, everybody now has 0 Beffs. o7');
   };
+
+  private parseMoneyAmount(amount: string, totalMoney: number) {
+    if (amount.toLowerCase() === 'all') {
+      return totalMoney;
+    }
+    const match = amount.replace(/\s+/g, '').match(/^([\d\.]+)\s*(\/\s*\d+\.)?\s*(%)?/);
+    if (match) {
+      const value = parseFloat(match[1]);
+      let denom = 1;
+      if (match[2]) {
+        denom = parseFloat(match[2].replace('/', '').trim());
+        return Math.floor(totalMoney * value / denom);
+      }
+      if (match[3]) {
+        return Math.floor(totalMoney * value / 100);
+      }
+      return Math.floor(value);
+    } else {
+      return undefined;
+    }
+  }
 }
