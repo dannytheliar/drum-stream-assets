@@ -33,7 +33,7 @@ export default class MoneyModule {
   private gambleCooldowns: Map<string, number> = new Map();
   private gambleMoneyLost: number = 0;
 
-  private static readonly MONEY_PER_MINUTE = 2;
+  private static readonly MONEY_PER_MINUTE = 10;
   private static readonly INTERVAL_UPDATE_PERIOD_MS = 60000;
   private static readonly GAMBLE_COOLDOWN_MS = 60000;
 
@@ -60,10 +60,17 @@ export default class MoneyModule {
 
   private handleInterval = async () => {
     // TODO: Only run this when stream is live
+    const botViewers = [
+      'streamelements',
+      'nightbot',
+      'danny_the_honest',
+      'danny_the_liar',
+    ];
     const eligibleViewers = this.viewers.filter(v =>
       v.online &&
       v.onlineSinceTimestamp &&
-      Date.now() - v.onlineSinceTimestamp > MoneyModule.INTERVAL_UPDATE_PERIOD_MS
+      Date.now() - v.onlineSinceTimestamp > MoneyModule.INTERVAL_UPDATE_PERIOD_MS &&
+      !botViewers.includes(v.login.toLowerCase())
     );
     if (eligibleViewers.length > 0) {
       // this is an unsafe raw query as kysely's (safe) parameterization breaks when there are
@@ -71,9 +78,9 @@ export default class MoneyModule {
       // comes from streamerbot and cannot include any SQL injection/escape tokens.
       // it's still not ideal, but when everything is a nail, it's okay to get hammered...?
       await sql.raw(
-        `UPDATE users SET money = money + ${MoneyModule.MONEY_PER_MINUTE} WHERE LOWER(name) in (${
-          eligibleViewers.map(v => `'${v.login.toLowerCase()}'`).join(',')
-        })`)
+        `INSERT INTO users (name, money) VALUES ${
+          eligibleViewers.map(v => `('${v.login}', ${MoneyModule.MONEY_PER_MINUTE})`).join(',')
+        } ON CONFLICT(name) DO UPDATE SET money = money + ${MoneyModule.MONEY_PER_MINUTE}`)
         .execute(db);
     }
   };
