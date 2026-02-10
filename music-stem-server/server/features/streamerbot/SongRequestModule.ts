@@ -254,6 +254,7 @@ export default class SongRequestModule {
           .where('status', '=', 'ready')
           .execute();
         await this.client.sendTwitchMessage(`@${payload.user} Your song requests are on hold - type !back when you're back - be good! dannyt75Hug`);
+        this.wss.broadcast({ type: 'song_request_moved' });
       } else {
         await this.client.sendTwitchMessage(`@${payload.user} You don't have any song requests to put on hold!`);
       }
@@ -268,6 +269,7 @@ export default class SongRequestModule {
           .where('status', '=', 'hold')
           .execute();
         await this.client.sendTwitchMessage(`@${payload.user} Welcome back! Your song requests are back on the wheel dannyt75Spin`);
+        this.wss.broadcast({ type: 'song_request_moved' });
       } else {
         await this.client.sendTwitchMessage(`@${payload.user} WB! but you don't have any song requests on hold dannyt75Keking`);
       }
