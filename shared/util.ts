@@ -74,10 +74,10 @@ export const calculateSliceScale = (requester: SongRequester, isSubscribed: bool
   const MAX_SCALE = 5.0;
   const REDUCTION_PER_FULFILLED_REQUEST = 0.2;
   const REDUCTION_RECENTLY_FULFILLED = 0.6;
-  const RECENTLY_FULFILLED_TIME_WINDOW = 1000 * 60 * 15; // 15 minutes
+  const RECENTLY_FULFILLED_TIME_WINDOW = 1000 * 60 * 30;
   const INCREASE_PER_BUMP = 0.1;
   const INCREASE_PER_HOUR = 1.5;
-  const INCREASE_FIRST_REQUEST = 0.8;
+  const INCREASE_FIRST_REQUEST = 2.0;
   const INCREASE_SUB_BONUS = 0.5;
 
   const timeSinceLastRequest = requester.lastFulfilledAt ?
