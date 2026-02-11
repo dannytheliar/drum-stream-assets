@@ -42,7 +42,6 @@ Each overlay is located in [electron-overlays/src](electron-overlays/src) in a \
 - [ManagerWindow](electron-overlays/src/ManagerWindow): a manager window that controls the other windows, including opening and closing them, restarting them, and displaying their status (🤖 *Largely AI-developed.*)
 - [MIDINotesWindow](electron-overlays/src/MIDINotesWindow): the most prevalent overlay, displaying overlays atop each of the drums triggered by MIDI events with Twitch emotes playing on them. Multiple instances of this window run for multiple different cameras
 - [NowPlayingWindow](electron-overlays/src/NowPlayingWindow): displays the current song and artist, with the song progress bar shown in the style of an Elden Ring boss health bar
-- [SyncedLyricsWindow](electron-overlays/src/SyncedLyricsWindow): displays either synced lyrics, if an LRC file is available (for songs downloaded through spotdl, which can also retrieve synced lyric files); or shows the video of a song downloaded from YouTube
 - [WheelWindow](electron-overlays/src/WheelWindow): manages the song selection wheel of all current song requests. Resizes song request slice sizes (and odds of being selected) based on number of past song requests and request age (🤖 *Largely AI-developed.*)
 - *currently unused*:
    - [HeartRateWindow](electron-overlays/src/HeartRateWindow):  interacts with the BLE heart rate monitor to display current heart rate
