@@ -99,6 +99,33 @@ export default class StreamerbotWebSocketClient {
     this.wss.registerHandler('song_changed', this.handleSongChanged);
     this.wss.registerHandler('song_playback_completed', this.handleSongEnded);
 
+    this.wss.registerHandler('song_changed', () => {
+      this.doAction('OBS: Overlay Show', { sourceName: 'SyncedLyrics' });
+    });
+    this.wss.registerHandler('song_playback_completed', () => {
+      this.doAction('OBS: Overlay Hide', { sourceName: 'SyncedLyrics' });
+      this.doAction('Queue: Unpause', { queueName: 'TTS' });
+      this.doAction('OBS Mic Reverb Off');
+    });
+    this.wss.registerHandler('song_playback_started', () => {
+      this.doAction('OBS: Overlay Show', { sourceName: 'SyncedLyrics' });
+      this.doAction('Queue: Pause', { queueName: 'TTS' });
+    });
+    this.wss.registerHandler('song_played', () => {
+      this.doAction('OBS: Overlay Show', { sourceName: 'SyncedLyrics' });
+      this.doAction('Queue: Pause', { queueName: 'TTS' });
+    });
+    this.wss.registerHandler('song_stopped', () => {
+      this.doAction('OBS: Overlay Hide', { sourceName: 'SyncedLyrics' });
+      this.doAction('Queue: Unpause', { queueName: 'TTS' });
+      this.doAction('OBS Mic Reverb Off');
+    });
+    this.wss.registerHandler('song_playpack_paused', () => {
+      this.doAction('Queue: Unpause', { queueName: 'TTS' });
+    });
+    this.wss.registerHandler('wheel_select_hat', (payload) => {
+      this.sendTwitchMessage(`THE HAT WHEEL SAYS: ${payload.hat}! dannyt75Spin dannyt75Spin dannyt75Spin`);
+    });
     this.registerCommandHandler('!song', async (payload) => {
       if (this.currentSong) {
         await this.sendTwitchMessage(`@${payload.user} The current song is ${this.currentSong.artist} - ${this.currentSong.title}`);
