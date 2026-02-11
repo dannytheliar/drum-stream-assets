@@ -254,6 +254,7 @@ export default class SongRequestModule {
           .where('status', '=', 'ready')
           .execute();
         await this.client.sendTwitchMessage(`@${payload.user} Your song requests are on hold - type !back when you're back - be good! dannyt75Hug`);
+        this.wss.broadcast({ type: 'song_request_moved' });
       } else {
         await this.client.sendTwitchMessage(`@${payload.user} You don't have any song requests to put on hold!`);
       }
@@ -268,6 +269,7 @@ export default class SongRequestModule {
           .where('status', '=', 'hold')
           .execute();
         await this.client.sendTwitchMessage(`@${payload.user} Welcome back! Your song requests are back on the wheel dannyt75Spin`);
+        this.wss.broadcast({ type: 'song_request_moved' });
       } else {
         await this.client.sendTwitchMessage(`@${payload.user} WB! but you don't have any song requests on hold dannyt75Keking`);
       }
@@ -409,19 +411,24 @@ export default class SongRequestModule {
     }
 
     let existingSongId: number | undefined | null;
-    const priorSongRequest = (await db.selectFrom('songRequests')
+    const priorSongRequest = await db.selectFrom('songRequests')
       .leftJoin('songs', 'songRequests.songId', 'songs.id')
       .innerJoin('songDownloads', 'songDownloads.songId', 'songs.id')
       .leftJoin('downloads', 'downloads.id', 'songDownloads.downloadId')
-      .select(['songRequests.songId', 'stemsPath', 'artist', 'title', 'album', 'track', 'downloads.path as downloadPath', 'lyricsPath', 'isVideo'])
+      .select(['songRequests.songId', 'stemsPath', 'artist', 'title', 'album', 'track', 'duration', 'downloads.path as downloadPath', 'lyricsPath', 'isVideo'])
       .selectAll('songs')
       .where('query', '=', query)
-      .execute())[0];
+      .executeTakeFirst();
     if (priorSongRequest) {
+      // check that duration is still allowable for this user
+      if (priorSongRequest.duration && priorSongRequest.duration > await this.songRequestMaxDurationForUser(requesterName)) {
+        if (onFailure) onFailure('TOO_LONG');
+        return;
+      }
       existingSongId = priorSongRequest.songId;
     }
 
-    const songRequest = (await db.insertInto('songRequests').values({
+    const songRequest = await db.insertInto('songRequests').values({
       songId: existingSongId,
       query,
       priority: options.priority || 0,
@@ -430,12 +437,12 @@ export default class SongRequestModule {
       requester: requesterName,
       twitchRewardId: options?.twitchRewardId,
       twitchRedemptionId: options?.twitchRedemptionId,
-    }).returning('id as id').execute())[0];
+    }).returning('id as id').executeTakeFirstOrThrow();
 
     if (onSuccess) this.successCallbacks[songRequest.id] = onSuccess;
     if (onFailure) this.failureCallbacks[songRequest.id] = onFailure;
 
-    if (existingSongId) {
+    if (priorSongRequest && existingSongId) {
       setImmediate(async () => {
         this.handleSongRequestComplete({
           id: songRequest.id,
@@ -653,6 +660,7 @@ export default class SongRequestModule {
       requesterName,
       options,
       async (songTitle: string, numPreviousRequests: number, numPreviousRequestsBySameRequester: number) => {
+        if (!songRequestId) return; // something went wrong, not sure how we would've gotten here
         if (options?.songRequestToReplaceId) {
           const oldSongRequest = await db.updateTable('songRequests')
             .where('id', '=', options.songRequestToReplaceId)

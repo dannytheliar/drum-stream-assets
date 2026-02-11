@@ -279,7 +279,7 @@ export default class MoneyModule {
     if (amount.toLowerCase() === 'all') {
       return totalMoney;
     }
-    const match = amount.replace(/\s+/g, '').match(/^([\d\.]+)\s*(\/\s*\d+\.)?\s*(%)?/);
+    const match = amount.replace(/[\s,]+/g, '').match(/^([\d\.]+)\s*(\/\s*\d+\.)?\s*(%)?/);
     if (match) {
       const value = parseFloat(match[1]);
       let denom = 1;

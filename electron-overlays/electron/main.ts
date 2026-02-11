@@ -57,19 +57,6 @@ function createNowPlayingWindow() {
   return win;
 }
 
-function createSyncedLyricsWindow() {
-  const win = new BrowserWindow({
-    ...defaultWindowConfig,
-    title: 'Synced Lyrics',
-    width: 640,
-    height: 400,
-  });
-  win.setIgnoreMouseEvents(true);
-  win.loadURL(process.env.VITE_DEV_SERVER_URL! + 'src/SyncedLyricsWindow/index.html');
-
-  return win;
-}
-
 function createDrumTriggersWindow() {
   const win = new BrowserWindow({
     ...defaultWindowConfig,
@@ -209,7 +196,6 @@ const managedWindows: { [key: string]: BrowserWindow | null } = {
   'midi-ride': null,
   'midi-overhead': null,
   'now-playing': null,
-  'synced-lyrics': null,
   'audio-display': null,
   'song-history': null,
   'drum-triggers': null,
@@ -229,21 +215,7 @@ const createWebSocket = () => {
       return;
     }
 
-    let { type, ...payload } = message;
-
-    // Load lyrics from filesystem and add to song_changed payloads
-    // (renderer processes cannot access filesystem like this)
-    if (message.type === 'song_changed') {
-      let lyrics = null;
-      if (message.song.lyricsPath && message.song.downloadPath) {
-        const pathParts = message.song.downloadPath.split('/');
-        pathParts[pathParts.length - 1] = message.song.lyricsPath;
-        lyrics = await parseLyrics(pathParts.join('/'), message.song.duration)
-      }
-      payload = { ...payload, lyrics };
-      prevSongChangedPayload = payload;
-    }
-
+    const { type, ...payload } = message;
     windows.forEach(win => win.webContents.send(type, payload));
   });
   ws.on('error', () => {});
@@ -265,7 +237,6 @@ function getWindowCreator(windowKey: string): (() => BrowserWindow) | null {
     case 'midi-ride': return () => createMIDINotesWindow('ccdf7c3ebcfc16779dea43318f45451d3ea35c06ea9661b6a0c6d4a1f2735752');
     case 'midi-overhead': return () => createMIDINotesWindow('67a3ddcf3ae146f196b60e30f3e5268318705e99c51d639c4f3d22a24a709c55');
     case 'now-playing': return createNowPlayingWindow;
-    case 'synced-lyrics': return createSyncedLyricsWindow;
     case 'audio-display': return createAudioDisplayWindow;
     case 'song-history': return createSongHistoryWindow;
     case 'drum-triggers': return createDrumTriggersWindow;

@@ -21,7 +21,6 @@ export type WebSocketServerMessage = {
   songRequestId: number,
 } | {
   type: 'song_request_moved',
-  songRequestId: number,
 } | {
   type: 'song_request',
   query: string,
