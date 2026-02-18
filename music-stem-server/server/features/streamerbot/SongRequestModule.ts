@@ -90,7 +90,7 @@ export default class SongRequestModule {
         await this.client.doAction('!srrules');
         this.rejectedSongRequests[payload.user] = payload.rawInput;
       } else {
-        if (payload.rawInput.trim().toLowerCase() === 'roulette') {
+        if (payload.commandName === '!srroulette' || payload.rawInput.trim().toLowerCase() === 'roulette') {
           await this.handleRouletteRequest(payload.user);
         } else {
           await beginSongRequest(payload);
@@ -274,8 +274,6 @@ export default class SongRequestModule {
         await this.client.sendTwitchMessage(`@${payload.user} WB! but you don't have any song requests on hold dannyt75Keking`);
       }
     });
-
-    this.client.registerCommandHandler('!srroulette', (payload) => this.handleRouletteRequest(payload.user));
 
     this.client.registerCustomEventHandler<'Twitch.GiftSub' | 'Twitch.GiftBomb'>('add bumps', async (payload) => {
       if (payload.triggerName === 'Gift Subscription' || payload.triggerName === 'Gift Bomb') {
