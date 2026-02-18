@@ -145,9 +145,10 @@ export default class MoneyModule {
           }
 
           this.client.sendTwitchMessage(`${raffleIsJackpot ? 'JACKPOT!' : ''} ${winner} won the raffle and got ${this.raffleValue} Beffs!`);
+          const user = await this.client.getUser(winner);
           await db.updateTable('users')
             .set({ money: eb => eb('money', '+', this.raffleValue) })
-            .where(sql`LOWER(name)`, '=', winner.toLowerCase())
+            .where('name', '=', user.name)
             .execute();
         } else {
           this.client.sendTwitchMessage('No one entered the raffle! :(');
@@ -216,7 +217,7 @@ export default class MoneyModule {
       }
       await db.updateTable('users')
         .set({ money: nextMoney })
-        .where(sql`LOWER(name)`, '=', payload.user.toLowerCase())
+        .where('name', '=', user.name)
         .execute();
       this.gambleCooldowns.set(payload.user, Date.now());
     }
@@ -249,14 +250,14 @@ export default class MoneyModule {
       return;
     }
     // ensure recipient exists
-    await this.client.getUser(recipient);
+    const recipientUser = await this.client.getUser(recipient);
     await db.updateTable('users')
       .set({ money: eb => eb('money', '+', amount) })
-      .where(sql`LOWER(name)`, '=', recipient.toLowerCase())
+      .where('name', '=', recipientUser.name)
       .execute();
     await db.updateTable('users')
       .set({ money: eb => eb('money', '-', amount) })
-      .where(sql`LOWER(name)`, '=', payload.user.toLowerCase())
+      .where('name', '=', user.name)
       .execute();
     this.client.sendTwitchMessage(`@${payload.user} You gave ${recipient} ${amount} Beff${amount !== 1 ? 's' : ''}!`);
   };

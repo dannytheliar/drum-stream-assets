@@ -387,10 +387,11 @@ export default class StreamerbotWebSocketClient {
     let user = await db.selectFrom('users')
       .selectAll()
       .where(q => q.fn<string>('lower', ['name']), '=', userName.toLowerCase())
-      .execute();
-    if (!user.length) {
-      user = await db.insertInto('users').values({ name: userName }).returningAll().execute();
+      .executeTakeFirst();
+    if (!user) {
+      user = await db.insertInto('users').values({ name: userName }).returningAll().executeTakeFirst();
+      if (!user) throw new Error(`Failed to create user ${userName}`);
     }
-    return user[0];
+    return user;
   }
 }
