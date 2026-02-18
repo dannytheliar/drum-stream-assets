@@ -45,7 +45,7 @@ app.get('/requests', cors(), async (req, res) => {
   if (statuses && !Array.isArray(statuses)) {
     statuses = [statuses as SongRequestStatus];
   }
-  const requests = await Queries.allSongRequests(statuses as SongRequestStatus[]);
+  const requests = await Queries.allSongRequests(statuses as SongRequestStatus[], Boolean(req.query.unique));
   res.send(convertLocalPathsToURLs(requests));
 });
 

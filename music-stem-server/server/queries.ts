@@ -57,49 +57,57 @@ export const allSongs = () => db.selectFrom('songs')
   ])
   .execute();
 
-export const allSongRequests = (statuses: SongRequestStatus[] = ['ready', 'hold']) => db.selectFrom('songRequests')
-  .innerJoin('songs', 'songs.id', 'songRequests.songId')
-  .innerJoin('songDownloads', 'songDownloads.songId', 'songs.id')
-  .innerJoin('downloads', 'downloads.id', 'songDownloads.downloadId')
-  .leftJoin(
-    db.selectFrom('songRequests as sr2')
-      .select([
-        'sr2.requester',
-        db.fn.countAll<number>().as('fulfilledToday')
-      ])
-      .where('sr2.status', '=', 'fulfilled')
-      .where('sr2.createdAt', '>', sql<string>`(select createdAt from streamHistory order by id desc limit 1)`)
-      .groupBy('sr2.requester')
-      .as('fulfilledCounts'),
-    join => join.onRef('fulfilledCounts.requester', '=', 'songRequests.requester')
-  )
-  .leftJoin(
-    db.selectFrom('songRequests as sr3')
-      .select(['sr3.requester', sql<string>`max(sr3.fulfilledAt)`.as('lastFulfilledAt')])
-      .where('sr3.status', '=', 'fulfilled')
-      .where('sr3.createdAt', '>', sql<string>`(select createdAt from streamHistory order by id desc limit 1)`)
-      .orderBy('sr3.fulfilledAt', 'desc')
-      .groupBy('sr3.requester')
-      .as('lastFulfilled'),
-    join => join.onRef('lastFulfilled.requester', '=', 'songRequests.requester')
-  )
-  .leftJoin(
-    db.selectFrom('users')
-      .select(['name', 'currentBumpCount'])
-      .as('users'),
-    join => join.onRef('users.name', '=', 'songRequests.requester')
-  )
-  .where('songRequests.status', 'in', statuses)
-  .select([
-    'songs.id', 'songs.artist', 'songs.title', 'songs.album', 'songs.duration', 'songs.stemsPath', 'songs.lyricsPath',
-    'downloads.path as downloadPath', 'downloads.isVideo',
-    'songRequests.requester', 'songRequests.priority', 'songRequests.noShenanigans', 'songRequests.status', 'songRequests.id as songRequestId', 'songRequests.createdAt', 'songRequests.effectiveCreatedAt',
-    'fulfilledCounts.fulfilledToday',
-    'lastFulfilled.lastFulfilledAt',
-    'users.currentBumpCount',
-  ])
-  .orderBy(['songRequests.priority desc', 'songRequests.effectiveCreatedAt asc'])
-  .execute();
+export const allSongRequests = (
+  statuses: SongRequestStatus[] = ['ready', 'hold'],
+  uniqueSongs: boolean = false
+) => {
+  let query = db.selectFrom('songRequests')
+    .innerJoin('songs', 'songs.id', 'songRequests.songId')
+    .innerJoin('songDownloads', 'songDownloads.songId', 'songs.id')
+    .innerJoin('downloads', 'downloads.id', 'songDownloads.downloadId')
+    .leftJoin(
+      db.selectFrom('songRequests as sr2')
+        .select([
+          'sr2.requester',
+          db.fn.countAll<number>().as('fulfilledToday')
+        ])
+        .where('sr2.status', '=', 'fulfilled')
+        .where('sr2.createdAt', '>', sql<string>`(select createdAt from streamHistory order by id desc limit 1)`)
+        .groupBy('sr2.requester')
+        .as('fulfilledCounts'),
+      join => join.onRef('fulfilledCounts.requester', '=', 'songRequests.requester')
+    )
+    .leftJoin(
+      db.selectFrom('songRequests as sr3')
+        .select(['sr3.requester', sql<string>`max(sr3.fulfilledAt)`.as('lastFulfilledAt')])
+        .where('sr3.status', '=', 'fulfilled')
+        .where('sr3.createdAt', '>', sql<string>`(select createdAt from streamHistory order by id desc limit 1)`)
+        .orderBy('sr3.fulfilledAt', 'desc')
+        .groupBy('sr3.requester')
+        .as('lastFulfilled'),
+      join => join.onRef('lastFulfilled.requester', '=', 'songRequests.requester')
+    )
+    .leftJoin(
+      db.selectFrom('users')
+        .select(['name', 'currentBumpCount'])
+        .as('users'),
+      join => join.onRef('users.name', '=', 'songRequests.requester')
+    )
+    .where('songRequests.status', 'in', statuses)
+    .select([
+      'songs.id', 'songs.artist', 'songs.title', 'songs.album', 'songs.duration', 'songs.stemsPath', 'songs.lyricsPath',
+      'downloads.path as downloadPath', 'downloads.isVideo',
+      'songRequests.requester', 'songRequests.priority', 'songRequests.noShenanigans', 'songRequests.status', 'songRequests.id as songRequestId', 'songRequests.createdAt', 'songRequests.effectiveCreatedAt',
+      'fulfilledCounts.fulfilledToday',
+      'lastFulfilled.lastFulfilledAt',
+      'users.currentBumpCount',
+    ])
+    .orderBy(['songRequests.priority desc', 'songRequests.effectiveCreatedAt asc']);
+  if (uniqueSongs) {
+    query = query.groupBy('songRequests.songId');
+  }
+  return query.execute();
+};
 
 export const allSongRequesters = () => db.selectFrom('songRequests')
   .where('songRequests.status', 'in', ['processing', 'ready'])

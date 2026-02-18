@@ -37,6 +37,10 @@ const songListElem = document.createElement('ol');
 songListElem.classList.add('GuessTheSong-songs');
 globalContainerElem.appendChild(songListElem);
 
+const firstRequesterElem = document.createElement('div');
+firstRequesterElem.classList.add('GuessTheSong-first-requester');
+globalContainerElem.appendChild(firstRequesterElem);
+
 setInterval(() => {
   if (timerDisplayValueMs >= 0) {
     // timerElem.innerText = formatTime(timerDisplayValueMs / 1000);
@@ -50,7 +54,7 @@ setInterval(() => {
 window.ipcRenderer.on('obs_scene_changed', async (_, payload) => {
   if (payload.scene === ACTIVE_SCENE_NAME) {
     document.body.style.display = 'block';
-    songsIndex = (await fetch('http://localhost:3000/requests?status=fulfilled').then(r => r.json()));
+    songsIndex = (await fetch('http://localhost:3000/requests?status=fulfilled&unique=1').then(r => r.json()));
     startRound();
   } else {
     if (nextSceneChange) {
@@ -172,6 +176,13 @@ function renderGuessingView(songPool: SongData[], correctSong: SongData, respons
     }
     songListElem.appendChild(elem);
   });
+
+  firstRequesterElem.innerHTML = `First requested
+    <p><strong>${new Date(correctSong.createdAt!).toLocaleDateString() ?? ''}</strong></p>
+  `;
+  if (correctSong.requester) {
+    firstRequesterElem.innerHTML += `<p>by <strong>${correctSong.requester}</strong></p>`;
+  }
 
   howls.forEach(howl => howl.unload());
   let isLoaded = false;
