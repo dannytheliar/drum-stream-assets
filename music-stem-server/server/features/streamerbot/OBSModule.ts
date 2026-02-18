@@ -42,6 +42,7 @@ export default class OBSModule {
     await db.insertInto('streamHistory')
       .defaultValues()
       .execute();
+    await db.updateTable('users').set({ currentBumpCount: 0 }).execute();
   };
 
   private handleOBSStreamingStopped = async (payload: StreamerbotEventPayload<"Obs.StreamingStopped">) => {
