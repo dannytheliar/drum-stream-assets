@@ -77,7 +77,7 @@ export default function SongBrowserUI() {
     s.artist.match(wordRegexp) ||
     (s.album?.match(wordRegexp) && !s.album?.startsWith('YouTube')) ||
     s.requester?.match(wordRegexp)
-  ));
+  )).slice(0, 100);
 
   const fetchNewSongListData = () => fetch('/songs')
     .then(res => res.json())
