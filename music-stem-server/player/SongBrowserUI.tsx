@@ -69,7 +69,7 @@ export default function SongBrowserUI() {
   // Previous state values for resetting from client remote control commands
   const [prevMutedTrackNames, setPrevMutedTrackNames] = useState<Set<string>>(new Set());
   const [prevPlaybackRate, setPrevPlaybackRate] = useState(1);
-
+  let hackyPlaylists = playlists;
   // For song filtering, check word by word (order doesn't matter)
   const songSearchRegexps = songSearchQuery.split(' ').map(word => new RegExp(word, 'i'));
   const filteredSongs = allSongs.filter(s => songSearchRegexps.every(wordRegexp =>
@@ -93,12 +93,16 @@ export default function SongBrowserUI() {
   const fetchNewRequestData = () => fetch('/requests')
     .then(res => res.json())
     .then((songs: SongRequestData[]) => {
-      setPlaylists(nextPlaylists => nextPlaylists.map(playlist => {
-        if (playlist.title === SONG_REQUEST_PLAYLIST_NAME) {
-          return { title: playlist.title, songs };
-        }
-        return playlist;
-      }));
+      setPlaylists(nextPlaylists => {
+        const n = nextPlaylists.map(playlist => {
+          if (playlist.title === SONG_REQUEST_PLAYLIST_NAME) {
+            return { title: playlist.title, songs };
+          }
+          return playlist;
+        });
+        hackyPlaylists = n;
+        return n;
+      });
     });
   
   const stopPlayback = () => {
@@ -176,9 +180,9 @@ export default function SongBrowserUI() {
       setActiveViewers(message.viewers);
     } else if (message?.type === 'wheel_select_song_requester') {
       // Find and select the song in the Requests playlist
-      const requestsPlaylistIndex = playlists.findIndex(p => p.title === SONG_REQUEST_PLAYLIST_NAME);
+      const requestsPlaylistIndex = hackyPlaylists.findIndex(p => p.title === SONG_REQUEST_PLAYLIST_NAME);
       if (requestsPlaylistIndex !== -1) {
-        const requestsPlaylist = playlists[requestsPlaylistIndex];
+        const requestsPlaylist = hackyPlaylists[requestsPlaylistIndex];
         const selectedSongFromWheel = requestsPlaylist.songs.find(song =>
           song.requester?.toLowerCase() === message.name.toLowerCase());
         if (selectedSongFromWheel) {
