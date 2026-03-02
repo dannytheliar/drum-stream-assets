@@ -52,6 +52,10 @@ window.ipcRenderer.on('emote_default_set', (_, payload) => {
 });
 window.ipcRenderer.on('emote_pinned', (_, payload) => {
   pinnedEmoteURL = payload.emoteURL;
+  // clear emote cache immediately
+  Object.keys(LAST_EMOTE_URLS).forEach(key => {
+    delete LAST_EMOTE_URLS[key];
+  });
 });
 
 // ELEMENT INIT

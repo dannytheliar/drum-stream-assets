@@ -55,6 +55,7 @@ export default class EmotesModule {
             emoteURL: null,
           });
         });
+        this.client.doAction('Pin Emote overhead cam');
       }
 
       // if two people sent the same emote-only message twice in a row, echo it
