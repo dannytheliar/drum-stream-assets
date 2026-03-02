@@ -79,7 +79,7 @@ export default class MoneyModule {
       // it's still not ideal, but when everything is a nail, it's okay to get hammered...?
       await sql.raw(
         `INSERT INTO users (name, money) VALUES ${
-          eligibleViewers.map(v => `('${v.login}', ${MoneyModule.MONEY_PER_MINUTE})`).join(',')
+          eligibleViewers.map(v => `('${v.display}', ${MoneyModule.MONEY_PER_MINUTE})`).join(',')
         } ON CONFLICT(name) DO UPDATE SET money = money + ${MoneyModule.MONEY_PER_MINUTE}`)
         .execute(db);
     }
