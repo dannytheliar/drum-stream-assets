@@ -107,9 +107,23 @@ export default class StreamerbotWebSocketClient {
       this.doAction('Queue: Unpause', { queueName: 'TTS' });
       this.doAction('OBS Mic Reverb Off');
     });
-    this.wss.registerHandler('song_playback_started', () => {
+    this.wss.registerHandler('song_playback_started', (payload) => {
       this.doAction('OBS: Overlay Show', { sourceName: 'SyncedLyrics' });
       this.doAction('Queue: Pause', { queueName: 'TTS' });
+      this.doAction('OBS: Set Text', {
+        source: 'now playing line 1',
+        text: payload.title,
+      });
+      this.doAction('OBS: Set Text', {
+        source: 'now playing line 2',
+        text: payload.artist,
+      });
+      this.doAction('OBS Visibility On', {
+        sourceName: 'now playing'
+      });
+      setTimeout(() => this.doAction('OBS Visibility Off', {
+        sourceName: 'now playing'
+      }), 5000);
     });
     this.wss.registerHandler('song_played', () => {
       this.doAction('OBS: Overlay Show', { sourceName: 'SyncedLyrics' });

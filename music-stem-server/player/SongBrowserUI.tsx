@@ -348,8 +348,10 @@ export default function SongBrowserUI() {
               if (selectedSong) {
                 broadcast({
                   type: 'song_playback_started',
-                  id: selectedSong?.id,
-                  songRequestId: selectedSong?.songRequestId,
+                  id: selectedSong.id,
+                  songRequestId: selectedSong.songRequestId,
+                  title: selectedSong.title,
+                  artist: selectedSong.artist,
                 });
               }
             }}

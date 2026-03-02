@@ -106,6 +106,8 @@ export type WebSocketPlayerMessage = {
   type: 'song_playback_started',
   id: number,
   songRequestId?: number | null,
+  title: string,
+  artist: string,
 } | {
   type: 'song_playback_completed',
   id: number,
