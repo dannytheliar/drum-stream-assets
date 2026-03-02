@@ -754,6 +754,7 @@ export default class SongRequestModule {
       priority: 0,
     }).returning('id').executeTakeFirst();
     if (newRequest) {
+      this.wss.broadcast({ type: 'song_request_added', songRequestId: newRequest.id });
       await this.client.sendTwitchMessage(`@${user} A random request from your history has been added to the wheel. !songs if you want to see what it is!`);
     } else {
       await this.client.sendTwitchMessage(`@${user} Something broke and at this point I'm too afraid to ask`);
