@@ -162,7 +162,7 @@ export default class SongRequestModule {
     });
 
     this.client.registerCommandHandler('!remove', async (payload) => {
-      if (payload.message.toLowerCase() === 'all') {
+      if (payload.message.toLowerCase() === 'all' || payload.command === '!removeall') {
         const songRequests = await queries.songRequestsByUser(payload.user);
         if (songRequests.length > 0) {
           const effectiveCreatedAt = songRequests[0].effectiveCreatedAt;
