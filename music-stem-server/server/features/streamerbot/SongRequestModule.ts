@@ -92,6 +92,8 @@ export default class SongRequestModule {
       } else {
         if (payload.commandName === '!srroulette' || payload.rawInput.trim().toLowerCase() === 'roulette') {
           await this.handleRouletteRequest(payload.user);
+        } else if (payload.rawInput.trim().toLowerCase() === 'rules') {
+          await this.client.doAction('!srrules');
         } else {
           await beginSongRequest(payload);
         }
