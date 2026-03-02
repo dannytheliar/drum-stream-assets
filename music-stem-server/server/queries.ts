@@ -200,24 +200,3 @@ export const nameThatTuneWinStreak = () => db
   .where('placement', '=', 1)
   .where('name', '=', sql<string>`currentWinner.n`)
   .execute();
-
-//
-// song voting
-//
-export const songVotesSinceTime = (songId: number, time: string) => db.selectFrom('songVotes')
-  .select(db.fn.countAll().as('voteCount'))
-  .select(db.fn.sum('songVotes.value').as('value'))
-  .where('songId', '=', songId)
-  .where('createdAt', '>', sql<any>`datetime(${time})`)
-  .execute();
-
-export const existingSongVoteForUser = (songId: number, user: string) => db.selectFrom('songVotes')
-  .select(['id'])
-  .where('voterName', '=', user)
-  .where('songId', '=', songId)
-  .execute();
-
-export const songVoteScore = (songId: number) => db.selectFrom('songVotes')
-  .select(db.fn.sum('value').as('value'))
-  .where('songId', '=', songId)
-  .execute();

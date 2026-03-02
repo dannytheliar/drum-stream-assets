@@ -7,7 +7,6 @@ import DiscordModule from './features/DiscordModule';
 import SongRequestModule from './features/streamerbot/SongRequestModule';
 // import ShenanigansModule from './features/streamerbot/ShenanigansModule';
 import OBSModule from './features/streamerbot/OBSModule';
-import SongVotingModule from './features/streamerbot/SongVotingModule';
 import EmotesModule from './features/streamerbot/EmotesModule';
 import NameThatTuneModule from './features/streamerbot/NameThatTuneModule';
 import GambaModule from './features/streamerbot/GambaModule';
@@ -47,11 +46,6 @@ const songRequestModule = new SongRequestModule(
 // );
 
 const obsModule = new OBSModule(
-  streamerbotWebSocketClient,
-  webSocketCoordinatorServer
-);
-
-const songVotingModule = new SongVotingModule(
   streamerbotWebSocketClient,
   webSocketCoordinatorServer
 );

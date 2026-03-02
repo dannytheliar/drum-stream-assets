@@ -55,14 +55,6 @@ interface SongTagsTable {
   songId: number;
 }
 
-interface SongVotesTable {
-  id: Generated<number>;
-  createdAt: CreatedAtType;
-  value: number;
-  songId: number;
-  voterName: string;
-}
-
 interface SongHistoryTable {
   id: Generated<number>;
   startedAt: CreatedAtType;
@@ -100,7 +92,6 @@ export interface Database {
   downloads: DownloadsTable;
   songs: SongsTable;
   songTags: SongTagsTable;
-  songVotes: SongVotesTable;
   songHistory: SongHistoryTable;
   streamHistory: StreamHistoryTable;
   nameThatTuneScores: NameThatTuneScoresTable;
