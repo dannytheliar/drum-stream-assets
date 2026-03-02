@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import Downloader from './Downloader';
 import SongList from './SongList';
 import { SongData, StreamerbotViewer } from '../../shared/messages';
@@ -22,6 +22,7 @@ interface SongBrowserPlaylistsProps {
   className?: string;
   socket?: WebSocket;
   onDownloadComplete: () => void;
+  onSongDeleted: () => void;
   refreshRequests?: () => void;
 }
 
@@ -38,9 +39,11 @@ function SongBrowserPlaylists({
   className,
   socket,
   onDownloadComplete,
+  onSongDeleted,
   refreshRequests,
 }: SongBrowserPlaylistsProps) {
   const isRequestsPlaylistSelected = ['Requests'].includes(playlists[selectedPlaylistIndex].title);
+  const [songMergeTarget, setSongMergeTarget] = useState<SongData | undefined>(undefined);
 
   const handleRemoveAllClick = () => {
     if (confirm('Are you sure you want to remove all song requests? This action cannot be undone.')) {
@@ -69,6 +72,31 @@ function SongBrowserPlaylists({
           selectedSong={selectedSong}
           renderActions={(song: SongData) => (
             <>
+              {!songMergeTarget &&
+                <button className="danger" onClick={() => {
+                  if (confirm(`Delete ${song.title}?`)) {
+                    fetch(`/songs/${song.id}`, { method: 'DELETE' })
+                      .then(() => onSongDeleted?.());
+                  }
+                }}>
+                  <i className="fa-solid fa-trash" /> Delete
+                </button>
+              }
+              <button className={`danger ${songMergeTarget ? 'active' : ''}`} onClick={() => {
+                if (songMergeTarget) {
+                  if (confirm(`Merge "${songMergeTarget.title}" into "${song.title}"? The FIRST song will be deleted and its requests will be merged into this one.`)) {
+                    fetch(`/songs/${songMergeTarget.id}?replacementId=${song.id}`, { method: 'DELETE' })
+                      .then(() => onSongDeleted?.());
+                  } else {
+                    alert('Merge mode cancelled');
+                  }
+                  setSongMergeTarget(undefined);
+                } else {
+                  setSongMergeTarget(song);
+                }
+              }}>
+                <i className="fa-solid fa-code-merge" /> Merge
+              </button>
               <button onClick={() => {
                 setSelectedSong(song);
                 setIsPlayingFromPlaylist(false);

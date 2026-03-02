@@ -92,6 +92,8 @@ export default class SongRequestModule {
       } else {
         if (payload.commandName === '!srroulette' || payload.rawInput.trim().toLowerCase() === 'roulette') {
           await this.handleRouletteRequest(payload.user);
+        } else if (payload.rawInput.trim().toLowerCase() === 'rules') {
+          await this.client.doAction('!srrules');
         } else {
           await beginSongRequest(payload);
         }
@@ -160,7 +162,7 @@ export default class SongRequestModule {
     });
 
     this.client.registerCommandHandler('!remove', async (payload) => {
-      if (payload.message.toLowerCase() === 'all') {
+      if (payload.message.toLowerCase() === 'all' || payload.command === '!removeall') {
         const songRequests = await queries.songRequestsByUser(payload.user);
         if (songRequests.length > 0) {
           const effectiveCreatedAt = songRequests[0].effectiveCreatedAt;
@@ -752,6 +754,7 @@ export default class SongRequestModule {
       priority: 0,
     }).returning('id').executeTakeFirst();
     if (newRequest) {
+      this.wss.broadcast({ type: 'song_request_added', songRequestId: newRequest.id });
       await this.client.sendTwitchMessage(`@${user} A random request from your history has been added to the wheel. !songs if you want to see what it is!`);
     } else {
       await this.client.sendTwitchMessage(`@${user} Something broke and at this point I'm too afraid to ask`);

@@ -51,7 +51,7 @@ export const allSongs = () => db.selectFrom('songs')
   .leftJoin('downloads', 'downloads.id', 'songDownloads.downloadId')
   .leftJoin('songRequests', 'songRequests.id', 'downloads.songRequestId')
   .select([
-    'songs.id', 'songs.artist', 'songs.title', 'songs.album', 'songs.duration', 'songs.track', 'songs.stemsPath', 'songs.lyricsPath', 'songs.createdAt',
+    'songs.id', 'songs.artist', 'songs.title', 'songs.album', 'songs.duration', 'songs.track', 'songs.stemsPath', 'songs.lyricsPath', 'songs.createdAt', 'songs.unsyncedLyricsVotes',
     'downloads.path as downloadPath', 'downloads.isVideo',
     'songRequests.requester',
   ])
@@ -158,6 +158,23 @@ export const songRequestQueue = () => db.selectFrom('songRequests')
   .orderBy(['songRequests.priority desc', 'songRequests.effectiveCreatedAt asc'])
   .execute();
 
+export const deleteSong = async (songId: number, replaceWithSongId?: number) => {
+  // @ts-expect-error
+  // downloadId is deprecated and will be removed in a future migration
+  await db.updateTable('songs').where('id', '=', songId).set({ downloadId: 1 }).execute();
+
+  const downloadIds = await db.selectFrom('songDownloads').where('songId', '=', songId).select('downloadId').execute();
+  await db.deleteFrom('songDownloads').where('songId', '=', songId).execute();
+  await db.deleteFrom('downloads').where('id', 'in', downloadIds.map(d => d.downloadId)).execute();
+
+  if (replaceWithSongId) {
+    await db.updateTable('songRequests').where('songId', '=', songId).set({ songId: replaceWithSongId }).execute();
+  } else {
+    await db.deleteFrom('songRequests').where('songId', '=', songId).execute();
+  }
+
+  await db.deleteFrom('songs').where('id', '=', songId).execute();
+};
 
 //
 // non-song request
@@ -199,25 +216,4 @@ export const nameThatTuneWinStreak = () => db
   )
   .where('placement', '=', 1)
   .where('name', '=', sql<string>`currentWinner.n`)
-  .execute();
-
-//
-// song voting
-//
-export const songVotesSinceTime = (songId: number, time: string) => db.selectFrom('songVotes')
-  .select(db.fn.countAll().as('voteCount'))
-  .select(db.fn.sum('songVotes.value').as('value'))
-  .where('songId', '=', songId)
-  .where('createdAt', '>', sql<any>`datetime(${time})`)
-  .execute();
-
-export const existingSongVoteForUser = (songId: number, user: string) => db.selectFrom('songVotes')
-  .select(['id'])
-  .where('voterName', '=', user)
-  .where('songId', '=', songId)
-  .execute();
-
-export const songVoteScore = (songId: number) => db.selectFrom('songVotes')
-  .select(db.fn.sum('value').as('value'))
-  .where('songId', '=', songId)
   .execute();

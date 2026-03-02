@@ -25,6 +25,7 @@ public partial class SyncedLyricsWindow : BaseOverlayWindow
     private readonly DispatcherTimer _renderTimer;
     private readonly ObservableCollection<LyricLineViewModel> _lyricLines;
     private LyricLine[] _lyrics = Array.Empty<LyricLine>();
+    private int _songId = 0;
     private bool _isPlaying = false;
     private bool _isSeeking = false;
     private double _currentTimestamp = 0;
@@ -163,6 +164,11 @@ public partial class SyncedLyricsWindow : BaseOverlayWindow
                     Console.WriteLine($"[SyncedLyricsWindow] Song playback completed");
                     HandleSongStopped(); // Same behavior as song stopped
                     break;
+
+                case UnsyncedLyricsVoteMessage unsyncedLyricsVote:
+                    Console.WriteLine($"[SyncedLyricsWindow] Unsynced lyrics vote: {unsyncedLyricsVote.UnsyncedLyricsVotes}");
+                    HandleUnsyncedLyricsVote(unsyncedLyricsVote);
+                    break;
             }
         });
     }
@@ -170,6 +176,7 @@ public partial class SyncedLyricsWindow : BaseOverlayWindow
     private async void HandleSongChanged(SongChangedMessage message)
     {
         Console.WriteLine($"[SyncedLyricsWindow] HandleSongChanged called");
+        _songId = message.Song.Id;
         _lyrics = message.Lyrics ?? Array.Empty<LyricLine>();
         Console.WriteLine($"[SyncedLyricsWindow] Loaded {_lyrics.Length} lyrics from message");
 
@@ -220,17 +227,24 @@ public partial class SyncedLyricsWindow : BaseOverlayWindow
         // If no lyrics were provided but we have lyricsPath, try to load them
         if (_lyrics.Length == 0 && !string.IsNullOrEmpty(message.Song.LyricsPath))
         {
-            Console.WriteLine($"[SyncedLyricsWindow] No lyrics in message, trying to load from path: {message.Song.LyricsPath}");
-            Console.WriteLine($"[SyncedLyricsWindow] Lyrics file exists check: {File.Exists(message.Song.LyricsPath)}");
-
-            try
+            if (message.Song.UnsyncedLyricsVotes > 1 && _songId == message.Song.Id)
             {
-                _lyrics = await LoadLyricsFromPath(message.Song.LyricsPath, message.Song.DownloadPath, message.Song.Duration);
-                Console.WriteLine($"[SyncedLyricsWindow] Loaded {_lyrics.Length} lyrics from file");
+                Console.WriteLine($"[SyncedLyricsWindow] Unsynced lyrics detected, skipping lyrics load");
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"[SyncedLyricsWindow] Error loading lyrics: {ex.Message}");
+                Console.WriteLine($"[SyncedLyricsWindow] No lyrics in message, trying to load from path: {message.Song.LyricsPath}");
+                Console.WriteLine($"[SyncedLyricsWindow] Lyrics file exists check: {File.Exists(message.Song.LyricsPath)}");
+
+                try
+                {
+                    _lyrics = await LoadLyricsFromPath(message.Song.LyricsPath, message.Song.DownloadPath, message.Song.Duration);
+                    Console.WriteLine($"[SyncedLyricsWindow] Loaded {_lyrics.Length} lyrics from file");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[SyncedLyricsWindow] Error loading lyrics: {ex.Message}");
+                }
             }
         }
         else if (_lyrics.Length == 0)
@@ -279,14 +293,23 @@ public partial class SyncedLyricsWindow : BaseOverlayWindow
 
     private void HandleSongStopped()
     {
+        _songId = -1;
         _lyrics = Array.Empty<LyricLine>();
         _isPlaying = false;
-        VideoPlayer.Source = null;
-        VideoPlayer.Visibility = Visibility.Hidden;
         _hasVideo = false;
-        RenderLyrics(_currentTimestamp);
 
-        // Hide the entire window when song is stopped
+        // Clear visible contents before hiding (for OBS window capture)
+        _lyricLines.Clear();
+        VideoPlayer.Stop();
+        VideoPlayer.Source = null;
+
+        // Force layout update so visual changes are rendered before hiding
+        UpdateLayout();
+
+        // Now hide the elements and window
+        VideoPlayer.Visibility = Visibility.Hidden;
+        LyricsContainer.Visibility = Visibility.Hidden;
+
         Console.WriteLine("[SyncedLyricsWindow] Hiding window - song stopped");
         Visibility = Visibility.Hidden;
     }
@@ -320,6 +343,16 @@ public partial class SyncedLyricsWindow : BaseOverlayWindow
         if (_hasVideo && VideoPlayer.Source != null)
         {
             VideoPlayer.SpeedRatio = _playbackRate;
+        }
+    }
+
+    private void HandleUnsyncedLyricsVote(UnsyncedLyricsVoteMessage message)
+    {
+        if (message.UnsyncedLyricsVotes > 1)
+        {
+            Console.WriteLine($"[SyncedLyricsWindow] Clearing lyrics due to unsynced lyrics vote");
+            _lyrics = Array.Empty<LyricLine>();
+            UpdateDisplay();
         }
     }
 

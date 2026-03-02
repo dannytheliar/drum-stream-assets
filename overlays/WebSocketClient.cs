@@ -172,6 +172,7 @@ public class WebSocketClient : IDisposable
                 "wheel_toggle_visibility" => JsonSerializer.Deserialize<WheelToggleVisibilityMessage>(json),
                 "wheel_spin" => JsonSerializer.Deserialize<WheelSpinMessage>(json),
                 "wheel_selection" => JsonSerializer.Deserialize<WheelSelectionMessage>(json),
+                "unsynced_lyrics_vote" => JsonSerializer.Deserialize<UnsyncedLyricsVoteMessage>(json),
                 "song_changed" => JsonSerializer.Deserialize<SongChangedMessage>(json),
                 "song_progress" => JsonSerializer.Deserialize<SongProgressMessage>(json),
                 "song_played" => JsonSerializer.Deserialize<SongPlayedMessage>(json),

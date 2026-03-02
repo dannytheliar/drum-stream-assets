@@ -50,6 +50,8 @@ interface SongsTable {
 
   stemsPath: string;
   lyricsPath: string | null;
+
+  unsyncedLyricsVotes: number;
 }
 
 interface SongDownloadsTable {
@@ -66,14 +68,6 @@ interface SongTagsTable {
   tag: string; // NB: Not enum?
 
   songId: number;
-}
-
-interface SongVotesTable {
-  id: Generated<number>;
-  createdAt: CreatedAtType;
-  value: number;
-  songId: number;
-  voterName: string;
 }
 
 interface SongHistoryTable {
@@ -124,9 +118,6 @@ export type SongDownloadUpdate = Updateable<SongDownloadsTable>;
 export type SongTag = Selectable<SongTagsTable>;
 export type NewSongTag = Insertable<SongTagsTable>;
 export type SongTagUpdate = Updateable<SongTagsTable>;
-export type SongVote = Selectable<SongVotesTable>;
-export type NewSongVote = Insertable<SongVotesTable>;
-export type SongVoteUpdate = Updateable<SongVotesTable>;
 export type SongHistory = Selectable<SongHistoryTable>;
 export type NewSongHistory = Insertable<SongHistoryTable>;
 export type SongHistoryUpdate = Updateable<SongHistoryTable>;
@@ -146,7 +137,6 @@ export interface Database {
   songs: SongsTable;
   songDownloads: SongDownloadsTable;
   songTags: SongTagsTable;
-  songVotes: SongVotesTable;
   songHistory: SongHistoryTable;
   streamHistory: StreamHistoryTable;
   nameThatTuneScores: NameThatTuneScoresTable;

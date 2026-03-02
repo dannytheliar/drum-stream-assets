@@ -40,6 +40,13 @@ app.get('/songs', cors(), async (req, res) => {
   res.send(convertLocalPathsToURLs(songs));
 });
 
+app.delete('/songs/:id', cors(), async (req, res) => {
+  const songId = parseInt(req.params.id);
+  const replacementId = req.query.replacementId ? parseInt(req.query.replacementId as string) : undefined;
+  await Queries.deleteSong(songId, replacementId);
+  res.sendStatus(200);
+});
+
 app.get('/requests', cors(), async (req, res) => {
   let statuses = req.query.status;
   if (statuses && !Array.isArray(statuses)) {

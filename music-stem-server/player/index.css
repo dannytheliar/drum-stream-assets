@@ -14,6 +14,13 @@ html, body, #root {
   margin: 0;
   height: 100%;
   min-height: 100%;
+  background-color: #111;
+  color: #eeee;
+}
+input, select {
+  background-color: #666;
+  color: #ccc;
+  border: 1px solid #333;
 }
 ul, p {
   margin: 0;
@@ -37,11 +44,25 @@ button:hover {
 }
 button[disabled] {
   cursor: auto;
-  background-color: #777;
+  background-color: #444;
   border-color: #333;
 }
 button.inactive {
   color: rgba(255, 255, 255, 0.4);
+}
+button.danger {
+  background-color: rgba(255, 0, 0, 0.5);
+  border-color: rgba(255, 0, 0, 1);
+}
+button.danger:hover {
+  background-color: rgba(255, 0, 0, 1);
+}
+button.danger.active {
+  background-color: rgba(0, 150, 0, 0.5);
+  border-color: rgba(0, 150, 0, 1);
+}
+button.danger.active:hover {
+  background-color: rgba(0, 150, 0, 1);
 }
 
 
@@ -78,7 +99,7 @@ button.inactive {
   flex: 1;
 }
 .SongBrowserPlaylists .active {
-  background-color: #ddd;
+  background-color: #333;
 }
 .SongBrowserPlaylists .playlist-top {
   display: flex;
