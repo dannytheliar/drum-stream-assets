@@ -405,6 +405,7 @@ export default function SongBrowserUI() {
         songs={filteredSongs}
         socket={socket}
         onDownloadComplete={fetchNewSongListData}
+        onSongDeleted={fetchNewSongListData}
         selectedSong={selectedSong}
         setSelectedSong={setSelectedSong}
         selectedPlaylistIndex={selectedPlaylistIndex}

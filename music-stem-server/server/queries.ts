@@ -158,6 +158,23 @@ export const songRequestQueue = () => db.selectFrom('songRequests')
   .orderBy(['songRequests.priority desc', 'songRequests.effectiveCreatedAt asc'])
   .execute();
 
+export const deleteSong = async (songId: number, replaceWithSongId?: number) => {
+  // @ts-expect-error
+  // downloadId is deprecated and will be removed in a future migration
+  await db.updateTable('songs').where('id', '=', songId).set({ downloadId: 1 }).execute();
+
+  const downloadIds = await db.selectFrom('songDownloads').where('songId', '=', songId).select('downloadId').execute();
+  await db.deleteFrom('songDownloads').where('songId', '=', songId).execute();
+  await db.deleteFrom('downloads').where('id', 'in', downloadIds.map(d => d.downloadId)).execute();
+
+  if (replaceWithSongId) {
+    await db.updateTable('songRequests').where('songId', '=', songId).set({ songId: replaceWithSongId }).execute();
+  } else {
+    await db.deleteFrom('songRequests').where('songId', '=', songId).execute();
+  }
+
+  await db.deleteFrom('songs').where('id', '=', songId).execute();
+};
 
 //
 // non-song request
