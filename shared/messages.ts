@@ -78,6 +78,10 @@ export type WebSocketServerMessage = {
 } | {
   type: 'wheel_select_hat',
   hat: string,
+} | {
+  type: 'unsynced_lyrics_vote',
+  songId: number,
+  unsyncedLyricsVotes: number,
 };
 
 export type WebSocketPlayerMessage = {
@@ -146,6 +150,7 @@ export interface SongData {
   noShenanigans?: number | null;
   status?: SongRequestStatus | null;
   songRequestId?: number | null;
+  unsyncedLyricsVotes: number;
 }
 
 export interface SongRequestData extends SongData {

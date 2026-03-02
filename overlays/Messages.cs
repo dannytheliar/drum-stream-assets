@@ -217,6 +217,17 @@ public class WheelSelectionMessage : WebSocketServerMessage
     public int SongRequestId { get; set; }
 }
 
+public class UnsyncedLyricsVoteMessage : WebSocketServerMessage
+{
+    public override string Type => "unsynced_lyrics_vote";
+
+    [JsonPropertyName("songId")]
+    public int SongId { get; set; }
+
+    [JsonPropertyName("unsyncedLyricsVotes")]
+    public int UnsyncedLyricsVotes { get; set; }
+}
+
 // Player messages
 public abstract class WebSocketPlayerMessage
 {
@@ -273,6 +284,9 @@ public class SongData
 
     [JsonPropertyName("fulfilledToday")]
     public int? FulfilledToday { get; set; }
+
+    [JsonPropertyName("unsyncedLyricsVotes")]
+    public int UnsyncedLyricsVotes { get; set; }
 }
 
 public class QueueInfo

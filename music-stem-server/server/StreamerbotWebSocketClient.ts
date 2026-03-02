@@ -131,6 +131,20 @@ export default class StreamerbotWebSocketClient {
         await this.sendTwitchMessage(`@${payload.user} The current song is ${this.currentSong.artist} - ${this.currentSong.title}`);
       }
     });
+    this.registerCommandHandler('!unsynced', async (payload) => {
+      if (!this.currentSong) return;
+      await db.updateTable('songs')
+        .set({ unsyncedLyricsVotes: this.currentSong.unsyncedLyricsVotes + 1 })
+        .where('id', '=', this.currentSong?.id)
+        .execute();
+      this.currentSong.unsyncedLyricsVotes += 1; // update local repr in case it gets updated again
+      this.wss.broadcast({
+        type: 'unsynced_lyrics_vote',
+        songId: this.currentSong.id,
+        unsyncedLyricsVotes: this.currentSong.unsyncedLyricsVotes,
+      });
+      await this.sendTwitchMessage(`@${payload.user} Lyrics for this song are now marked as out-of-sync`);
+    });
   }
 
   public registerCommandHandler(

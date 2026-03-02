@@ -51,7 +51,7 @@ export const allSongs = () => db.selectFrom('songs')
   .leftJoin('downloads', 'downloads.id', 'songDownloads.downloadId')
   .leftJoin('songRequests', 'songRequests.id', 'downloads.songRequestId')
   .select([
-    'songs.id', 'songs.artist', 'songs.title', 'songs.album', 'songs.duration', 'songs.track', 'songs.stemsPath', 'songs.lyricsPath', 'songs.createdAt',
+    'songs.id', 'songs.artist', 'songs.title', 'songs.album', 'songs.duration', 'songs.track', 'songs.stemsPath', 'songs.lyricsPath', 'songs.createdAt', 'songs.unsyncedLyricsVotes',
     'downloads.path as downloadPath', 'downloads.isVideo',
     'songRequests.requester',
   ])

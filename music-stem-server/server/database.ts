@@ -50,6 +50,8 @@ interface SongsTable {
 
   stemsPath: string;
   lyricsPath: string | null;
+
+  unsyncedLyricsVotes: number;
 }
 
 interface SongDownloadsTable {
