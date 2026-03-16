@@ -5,7 +5,7 @@
   "main": "server/main.ts",
   "scripts": {
     "backup-db": "wrangler d1 export music-stem-server-db --remote --output=backup/%date:~10,4%-%date:~4,2%-%date:~7,2%.sql",
-    "start": "npm run backup-db && cross-env NODE_ENV=production tsx server/main.ts 2>&1 | tee --append logs/%date:~10,4%-%date:~4,2%-%date:~7,2%.txt",
+    "start": "cross-env NODE_ENV=production tsx server/main.ts 2>&1 | tee --append logs/%date:~10,4%-%date:~4,2%-%date:~7,2%.txt",
     "dev": "concurrently \"tsx watch generateStreamerbotTypes.ts\" \"tsx watch server/main.ts\"",
     "build": "tsx generateStreamerbotTypes.ts && cd player && vite build"
   },
