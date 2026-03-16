@@ -682,9 +682,9 @@ window.ipcRenderer.on('wheel_toggle_visibility', async () => {
   const isCurrentlyVisible = globalContainer.classList.contains('wheel-visible');
   globalContainer.classList.toggle('wheel-visible');
 
-  // If wheel is now visible (was hidden, now shown), update wheel content and hide winner message
   if (!isCurrentlyVisible) {
-    // Hide any previous winner message
+    clearAllAnimationsAndTimeouts();
+  } else {
     initializeWheel();
   }
 });
