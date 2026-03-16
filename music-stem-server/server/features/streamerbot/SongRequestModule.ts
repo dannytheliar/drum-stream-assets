@@ -740,9 +740,12 @@ export default class SongRequestModule {
       .select(['id', 'songId'])
       .where('requester', '=', user)
       .where('status', '=', 'fulfilled')
+      .where('songId', 'not in', db.selectFrom('songRequests')
+        .select('songId')
+        .where('status', '=', 'ready'))
       .execute();
     if (!historicalRequests.length) {
-      await this.client.sendTwitchMessage(`@${user} You've never requested a song before, there's nothing to roulette!`);
+      await this.client.sendTwitchMessage(`@${user} There's nothing to roulette!`);
       return;
     }
     const randomRequest = historicalRequests[Math.floor(Math.random() * historicalRequests.length)];
