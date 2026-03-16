@@ -5,6 +5,9 @@ dist-electron
 assets
 streamer.bot
 
+tts/*
+!tts/.gitkeep
+
 *cookies.txt
 .env
 
