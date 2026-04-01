@@ -12,6 +12,7 @@ import { Queues, JobInterface } from '../shared/RabbitMQ';
 const VIDEO_EXTENSIONS = ['mkv', 'mp4', 'webm'];
 
 const i = new JobInterface();
+const cancelledRequests = new Set<number>();
 
 await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
   console.log('SONG_REQUEST_CREATED', msg);
@@ -21,6 +22,11 @@ await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
     minViews: msg.minViews,
     allowPlaylists: msg.allowPlaylists,
   });
+
+  if (cancelledRequests.has(msg.id)) {
+    return;
+  }
+
   for (const path of downloadedSongPaths) {
     const tags = await getSongTags(path);
     if (msg.maxDuration && tags.duration > msg.maxDuration) {
@@ -60,6 +66,10 @@ await i.listen(Queues.SONG_REQUEST_DEDUPLICATED, async (msg) => {
   const extension = dstPath.substring(dstPath.lastIndexOf('.') + 1);
   const isVideo = VIDEO_EXTENSIONS.includes(extension.toLowerCase());
 
+  if (cancelledRequests.has(msg.id)) {
+    return;
+  }
+
   await i.publish(Queues.SONG_REQUEST_COMPLETE, {
     ...msg,
     downloadPath: dstPath.replace(Paths.DOWNLOADS_PATH, '').replace(/^[/\\]+/, ''),
@@ -68,4 +78,8 @@ await i.listen(Queues.SONG_REQUEST_DEDUPLICATED, async (msg) => {
     isVideo,
     requester: msg.requester,
   });
+});
+
+await i.listen(Queues.SONG_REQUEST_CANCELLED, async (msg) => {
+  cancelledRequests.add(msg.songRequestId);
 });

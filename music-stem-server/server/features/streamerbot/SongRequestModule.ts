@@ -168,6 +168,12 @@ export default class SongRequestModule {
           const effectiveCreatedAt = songRequests[0].effectiveCreatedAt;
           this.removedSongRequests[payload.user] = effectiveCreatedAt;
 
+          songRequests.forEach(songRequest => {
+            this.jobs.publish(Queues.SONG_REQUEST_CANCELLED, {
+              songRequestId: songRequest.id,
+            });
+          });
+
           await db.updateTable('songRequests')
             .set({ status: 'cancelled', fulfilledAt: new Date().toUTCString() })
             .where('id', 'in', songRequests.map(sr => sr.id))
@@ -201,6 +207,9 @@ export default class SongRequestModule {
         .set({ status: 'cancelled', fulfilledAt: new Date().toUTCString() })
         .where('id', '=', songRequest.id)
         .execute();
+      this.jobs.publish(Queues.SONG_REQUEST_CANCELLED, {
+        songRequestId: songRequest.id,
+      });
       this.wss.broadcast({
         type: 'song_request_removed',
         songRequestId: songRequest.id,

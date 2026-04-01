@@ -56,6 +56,9 @@ export type Payloads = {
     id: number,
     errorMessage: string,
   },
+  'song_request_cancelled': {
+    songRequestId: number,
+  },
 };
 
 export const Queues = {
@@ -64,6 +67,7 @@ export const Queues = {
   SONG_REQUEST_DEDUPLICATED: 'song_request_deduplicated',
   SONG_REQUEST_COMPLETE: 'song_request_complete',
   SONG_REQUEST_ERROR: 'song_request_error',
+  SONG_REQUEST_CANCELLED: 'song_request_cancelled',
 } as const;
 
 export class JobInterface {
