@@ -202,3 +202,54 @@ html, body, #app {
 .wheel-light.winner-celebration:nth-child(odd) {
   animation: winner-celebration-odd 0.5s ease-in-out infinite !important;
 }
+
+.april-fools {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: Bahnschrift, sans-serif;
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  padding: 25px 35px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 10px rgba(0,0,0,0.5);
+  z-index: 4000;
+  border: 3px solid rgb(29, 26, 0);
+  /* Beige base + rainbow strip that loops seamlessly via repeating-linear-gradient */
+  background-color: rgb(174, 170, 144);
+  background-image: repeating-linear-gradient(
+    90deg,
+    #e63d3d 0px,
+    #e6891a 28px,
+    #d4c42e 56px,
+    #3db855 84px,
+    #2ab0e6 112px,
+    #8b66e0 140px,
+    #e0409e 168px,
+    #e63d3d 196px
+  );
+  background-size: 196px 100%;
+  background-repeat: repeat;
+  background-blend-mode: soft-light;
+  animation:
+    winner-entrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    april-fools-rainbow-slide 0.5s linear infinite;
+}
+
+.april-fools img {
+  width: 100px;
+  height: 100px;
+  vertical-align: middle;
+}
+
+@keyframes april-fools-rainbow-slide {
+  0% {
+    background-position: 0 50%;
+  }
+  100% {
+    background-position: 196px 50%;
+  }
+}
