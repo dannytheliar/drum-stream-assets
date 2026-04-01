@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import Downloader from './Downloader';
 import SongList from './SongList';
 import { SongData, StreamerbotViewer } from '../../shared/messages';
 
@@ -17,7 +18,7 @@ interface SongBrowserPlaylistsProps {
   selectedPlaylistIndex: number;
   setSelectedPlaylistIndex: (index: number) => void;
   activeViewers: StreamerbotViewer[];
-
+  
   className?: string;
   socket?: WebSocket;
   onDownloadComplete: () => void;
@@ -52,23 +53,17 @@ function SongBrowserPlaylists({
     }
   };
 
-  const handleSongDownloadClick = () => {
-    const query = prompt('Download a song:');
-    if (query && socket) {
-      socket.send(JSON.stringify({
-        type: 'song_request',
-        query,
-      }));
-    }
-  };
-
   return (
     <div className={`SongBrowserPlaylists ${className || ''}`}>
       <div className={isPlayingFromPlaylist ? '' : 'active'}>
-        <button onClick={handleSongDownloadClick} className="SongBrowserPlaylists__download-button">
-          <i className="fa-solid fa-download" />
-        </button>
-
+        {socket &&
+          <Downloader
+            onDownloadComplete={onDownloadComplete}
+            onInputChanged={q => setSongSearchQuery(q)}
+            value={songSearchQuery}
+            socket={socket}
+          />
+        }
         <div className="playlist-top">
           <h2>Song Index</h2>
         </div>

@@ -116,9 +116,3 @@ button.danger.active:hover {
   font-weight: bold;
   font-size: 24px;
 }
-.SongBrowserPlaylists__download-button {
-  position: absolute;
-  top: -40px;
-  left: 8px;
-  padding: 8px;
-}
