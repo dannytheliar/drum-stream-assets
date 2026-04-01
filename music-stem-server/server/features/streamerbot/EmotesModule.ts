@@ -16,11 +16,20 @@ export default class EmotesModule {
   private previousMessageUser: string = '';
   private messageRepeatTimer?: NodeJS.Timeout;
   private pinNextEmoteForUser?: string;
+  private currentObsScene?: string;
 
   private static readonly IGNORED_EMOTES = [
     // there are 7tv emotes for some commands
     '!sr',
     '!join',
+  ];
+
+  private static readonly PIN_EMOTE_SCENE_NAMES = [
+    'Drums main',
+    'Drums overhead',
+    'Drums ride cam',
+    'Drums left cam',
+    'Drums 2x2',
   ];
 
   constructor(
@@ -31,7 +40,12 @@ export default class EmotesModule {
     this.client.registerTwitchRedemptionHandler('Pin an Emote', (payload) => {
       this.pinNextEmoteForUser = payload.user;
     });
+    this.client.on('Obs.SceneChanged', this.handleOBSSceneChanged);
   }
+
+  private handleOBSSceneChanged = async (payload: StreamerbotEventPayload<"Obs.SceneChanged">) => {
+    this.currentObsScene = payload.data.scene.sceneName;
+  };
 
   private handleTwitchChatMessage = async (payload: StreamerbotEventPayload<"Twitch.ChatMessage">) => {
     if (payload.data.message.userId === StreamerbotWebSocketClient.BOT_TWITCH_USER_ID) return;
@@ -55,7 +69,9 @@ export default class EmotesModule {
             emoteURL: null,
           });
         });
-        this.client.doAction('Pin Emote overhead cam');
+        if (this.currentObsScene && EmotesModule.PIN_EMOTE_SCENE_NAMES.includes(this.currentObsScene)) {
+          this.client.doAction('Pin Emote overhead cam');
+        }
         this.pinNextEmoteForUser = undefined;
       }
 
