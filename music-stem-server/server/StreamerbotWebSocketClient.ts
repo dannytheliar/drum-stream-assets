@@ -43,6 +43,12 @@ export default class StreamerbotWebSocketClient {
   private viewers: Array<StreamerbotViewer> = [];
   private commandHandlers: { [command in Streamerbot.CommandName]?: (payload: CommandPayload) => void } = {};
   private twitchRedemptionHandlers: { [reward in Streamerbot.TwitchRewardName]?: (payload: TwitchRedemptionPayload) => void } = {};
+  private twitchRedemptionHistory: Array<{
+    rewardName: Streamerbot.TwitchRewardName;
+    rewardId: string;
+    redemptionId: string;
+    user: string;
+  }> = [];
   private customEventHandlers: { [event: string]: (payload: any) => void } = {};
 
   private isConnected = false;
@@ -392,6 +398,24 @@ export default class StreamerbotWebSocketClient {
       rewardId: payload.data.reward.id,
       redemptionId: payload.data.id,
     });
+    this.twitchRedemptionHistory.push({
+      rewardName,
+      rewardId: payload.data.reward.id,
+      redemptionId: payload.data.id,
+      user: payload.data.user_name,
+    });
+  }
+
+  public async refundTwitchRewardRedemption(rewardName: Streamerbot.TwitchRewardName, redeemer: string) {
+    const redemptionIndex = this.twitchRedemptionHistory.findLastIndex(r => r.rewardName === rewardName && r.user === redeemer);
+    if (redemptionIndex === undefined) return;
+    const redemption = this.twitchRedemptionHistory[redemptionIndex];
+    await this.doAction('Reward: Update Redemption', {
+      rewardId: redemption.rewardId,
+      redemptionId: redemption.redemptionId,
+      action: 'cancel'
+    });
+    delete this.twitchRedemptionHistory[redemptionIndex];
   }
 
   private async handleCommandTriggered(payload: StreamerbotEventPayload<"Command.Triggered">) {

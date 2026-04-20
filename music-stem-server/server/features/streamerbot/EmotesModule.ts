@@ -15,6 +15,7 @@ export default class EmotesModule {
   private previousMessage: string = '';
   private previousMessageUser: string = '';
   private messageRepeatTimer?: NodeJS.Timeout;
+  private pinEmoteTimeoutTimer?: NodeJS.Timeout;
   private pinNextEmoteForUser?: string;
   private currentObsScene?: string;
 
@@ -39,6 +40,17 @@ export default class EmotesModule {
     this.client.on('Twitch.ChatMessage', this.handleTwitchChatMessage);
     this.client.registerTwitchRedemptionHandler('Pin an Emote', (payload) => {
       this.pinNextEmoteForUser = payload.user;
+      this.pinEmoteTimeoutTimer = setTimeout(async () => {
+        this.pinNextEmoteForUser = undefined;
+        await this.client.refundTwitchRewardRedemption('Pin an Emote', payload.user);
+        await this.client.sendTwitchMessage(`@${payload.user} Your pin emote redemption was refunded since you didn't use any emotes to pin!`);
+      }, TwitchRewardDurations['Pin an Emote']);
+      this.client.pauseTwitchRedemption('Pin an Emote', TwitchRewardDurations['Pin an Emote'], () => {
+          this.wss.broadcast({
+            type: 'emote_pinned',
+            emoteURL: null,
+          });
+        });
     });
     this.client.on('Obs.SceneChanged', this.handleOBSSceneChanged);
   }
@@ -63,16 +75,11 @@ export default class EmotesModule {
           type: 'emote_pinned',
           emoteURL: emotes[0],
         });
-        this.client.pauseTwitchRedemption('Pin an Emote', TwitchRewardDurations['Pin an Emote'], () => {
-          this.wss.broadcast({
-            type: 'emote_pinned',
-            emoteURL: null,
-          });
-        });
         if (this.currentObsScene && EmotesModule.PIN_EMOTE_SCENE_NAMES.includes(this.currentObsScene)) {
           this.client.doAction('Pin Emote overhead cam');
         }
         this.pinNextEmoteForUser = undefined;
+        clearTimeout(this.pinEmoteTimeoutTimer);
       }
 
       // if two people sent the same emote-only message twice in a row, echo it
