@@ -372,6 +372,14 @@ export default class StreamerbotWebSocketClient {
     return viewer;
   }
 
+  public async getViewers(filter?: (viewer: StreamerbotViewer) => boolean) {
+    await this.updateActiveViewers();
+    if (filter) {
+      return this.viewers.filter(filter);
+    }
+    return this.viewers;
+  }
+
   private async handleTwitchRewardRedemption(payload: StreamerbotEventPayload<"Twitch.RewardRedemption">) {
     const rewardName = Streamerbot.rewardNameById(payload.data.reward.id);
     if (!rewardName) return;

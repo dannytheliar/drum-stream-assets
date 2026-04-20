@@ -296,6 +296,17 @@ export default class SongRequestModule {
       }
     });
 
+    // !massjeopardy: announce the names of all offline song requesters
+    this.client.registerCommandHandler('!massjeopardy', async (payload) => {
+      const requesters = await queries.allSongRequesters();
+      const offlineRequesters = await this.client.getViewers(viewer =>
+        !viewer.online &&
+        requesters.some(requester => requester.name.toLowerCase() === viewer.login.toLowerCase())
+      );
+      await this.client.sendTwitchMessage(`MASS JEOPARDY! If your name is on this list and you are online, LET ME KNOW! (or your SRs will be removed keking )`);
+      await this.client.sendTwitchMessage(requesters.map(requester => `@${requester.name}`).join(', '));
+    });
+
     this.client.registerCustomEventHandler<'Twitch.GiftSub' | 'Twitch.GiftBomb'>('add bumps', async (payload) => {
       if (payload.triggerName === 'Gift Subscription' || payload.triggerName === 'Gift Bomb') {
         // @ts-expect-error Twitch.GiftBomb payload definition is incomplete
