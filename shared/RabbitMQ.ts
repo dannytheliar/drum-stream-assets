@@ -18,6 +18,7 @@ export type Payloads = {
     acoustidRecordingId?: string,
     lyricsPath?: string,
     ignoreDuplicates?: boolean,
+    playlistIndex?: number,
     artist: string,
     title: string,
     album: string,

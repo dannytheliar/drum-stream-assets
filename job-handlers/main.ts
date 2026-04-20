@@ -27,7 +27,8 @@ await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
     return;
   }
 
-  for (const path of downloadedSongPaths) {
+  for (const index in downloadedSongPaths) {
+    const path = downloadedSongPaths[index];
     const tags = await getSongTags(path);
     if (msg.maxDuration && tags.duration > msg.maxDuration) {
       throw new Error('TOO_LONG');
@@ -44,6 +45,7 @@ await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
       requester: msg.requester,
       acoustidRecordingId,
       lyricsPath: lyricsPath?.replace(Paths.DOWNLOADS_PATH, '').replace(/^[/\\]+/, ''),
+      playlistIndex: Number(index),
 
       artist: String(tags.artist) || '',
       title: String(tags.title) || '',

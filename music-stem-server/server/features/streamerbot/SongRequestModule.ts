@@ -504,6 +504,17 @@ export default class SongRequestModule {
   private handleSongRequestDownloaded = async (payload: Payloads[typeof Queues.SONG_REQUEST_DOWNLOADED]) => {
     this.log('handleSongRequestDownloaded', payload);
     try {
+      let nextSongRequestId = payload.id;
+      // create an additional song request record if this is from a playlist
+      if (payload.playlistIndex && payload.playlistIndex > 0) {
+        const baseSongRequest = await db.selectFrom('songRequests')
+          .select(['query', 'requester', 'status', 'priority', 'noShenanigans', 'twitchRewardId', 'twitchRedemptionId'])
+          .where('id', '=', payload.id)
+          .executeTakeFirst();
+        const nextSongRequest = await db.insertInto('songRequests').values(baseSongRequest!)
+          .returning('id as id').executeTakeFirst();
+        nextSongRequestId = nextSongRequest!.id;
+      }
       // check if the downloaded and fingerprinted song is a duplicate
       if (payload.acoustidRecordingId) {
         const duplicate = await db.selectFrom('downloads')
@@ -521,6 +532,7 @@ export default class SongRequestModule {
           }
           this.jobs.publish(Queues.SONG_REQUEST_COMPLETE, {
             ...payload,
+            id: nextSongRequestId,
             downloadPath: duplicate.downloadPath,
             stemsPath: duplicate.stemsPath,
           });
@@ -529,6 +541,7 @@ export default class SongRequestModule {
       }
       this.jobs.publish(Queues.SONG_REQUEST_DEDUPLICATED, {
         ...payload,
+        id: nextSongRequestId,
       });
     } catch (e) {
       return this.handleSongRequestError({
