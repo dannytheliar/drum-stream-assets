@@ -645,19 +645,19 @@ async function spinWheel() {
     }, ANIMATION_CONFIG.WINNER_DELAY_MS);
   }, spinDurationMs);
 
-  if (Math.random() < 0.5) {
-    setTimeout(() => {
-      isSpinning = false;
-      spinWheel();
-      const el = document.createElement('div');
-      el.classList.add('april-fools');
-      el.innerHTML = 'APRIL FOOLS! GO AGAIN! <img src="kekl.png" />';
-      document.body.appendChild(el);
-      setTimeout(() => {
-        el.remove();
-      }, 5000);
-    }, spinDurationMs - 500);
-  }
+  // if (Math.random() < 0.5) {
+  //   setTimeout(() => {
+  //     isSpinning = false;
+  //     spinWheel();
+  //     const el = document.createElement('div');
+  //     el.classList.add('april-fools');
+  //     el.innerHTML = 'APRIL FOOLS! GO AGAIN! <img src="kekl.png" />';
+  //     document.body.appendChild(el);
+  //     setTimeout(() => {
+  //       el.remove();
+  //     }, 5000);
+  //   }, spinDurationMs - 500);
+  // }
 }
 
 // =============================================================================
