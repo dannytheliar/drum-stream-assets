@@ -112,6 +112,7 @@ export default class SongRequestModule {
       }
     });
 
+    // !srfor: request a song for someone else (moderator command)
     this.client.registerCommandHandler('!srfor', async (payload) => {
       // Allow a moderator to request a song for someone else
       // Bypass most of the checks, since it's a moderator privilege
@@ -133,6 +134,7 @@ export default class SongRequestModule {
       }
     });
 
+    // !replace: replace a given song request
     this.client.registerCommandHandler('!replace', async (payload) => {
       const { songRequest, query: strippedQuery, isAmbiguous } = await this.disambiguate(
         payload.user, payload.message, `Use ${payload.command} <number> <query> to select which song to replace.`
@@ -161,6 +163,7 @@ export default class SongRequestModule {
       );
     });
 
+    // !remove: remove a given song request
     this.client.registerCommandHandler('!remove', async (payload) => {
       if (payload.message.toLowerCase() === 'all' || payload.command === '!removeall') {
         const songRequests = await queries.songRequestsByUser(payload.user);
@@ -217,27 +220,32 @@ export default class SongRequestModule {
       await this.client.sendTwitchMessage(`@${payload.user} ${songRequest.artist} - ${songRequest.title} has been removed.`);
     });
 
+    // !songs: show all of a given requester's songs on the wheel
     this.client.registerCommandHandler('!songs', async (payload) => {
-      const songRequests = await queries.songRequestsByUser(payload.user);
+      const explicitTarget = payload.message.trim().toLowerCase().replace(/^@/, '');
+      const songRequests = await queries.songRequestsByUser(explicitTarget || payload.user);
       if (!songRequests.length) {
-        await this.client.sendTwitchMessage(`@${payload.user} You don't have any songs on the wheel!`);
+        await this.client.sendTwitchMessage(`@${payload.user} ${explicitTarget ? `${explicitTarget} doesn't` : 'You don\'t'} have any songs on the wheel!`);
       } else {
         const songList = songRequests.map((sr, i) =>
           `${i + 1}: ${[sr.artist, sr.title].filter(s => s).join(' - ')}`
         ).join(', ');
 
+        const targetText = explicitTarget ? `${explicitTarget}'s` : 'Your';
         if (songRequests.length === 1) {
-          await this.client.sendTwitchMessage(`@${payload.user} Your song: ${songList}`);
+          await this.client.sendTwitchMessage(`@${payload.user} ${targetText} song: ${songList}`);
         } else {
-          await this.client.sendTwitchMessage(`@${payload.user} Your ${songRequests.length} songs: ${songList}`);
+          await this.client.sendTwitchMessage(`@${payload.user} ${targetText} ${songRequests.length} songs: ${songList}`);
         }
       }
     });
 
+    // !size: show why a given requester's slice is the size it is
     this.client.registerCommandHandler('!size', async (payload) => {
       const percent = (num: number) => `${Math.round(num * 100)}%`;
       const requesters = await queries.allSongRequesters();
-      const requester = requesters.find(requester => requester.name === payload.user);
+      const explicitTarget = payload.message.trim().toLowerCase().replace(/^@/, '');
+      const requester = requesters.find(requester => requester.name.toLowerCase() === (explicitTarget || payload.user.toLowerCase()));
       if (requester) {
         const viewer = await this.client.getViewer(payload.user);
         const size = calculateSliceScale(requester, viewer?.subscribed);
@@ -256,6 +264,7 @@ export default class SongRequestModule {
       }
     });
 
+    // !brb: put song requests on hold when someone has to step away
     this.client.registerCommandHandler('!brb', async (payload) => {
       const songRequests = await queries.songRequestsByUser(payload.user);
       if (songRequests.length > 0) {
@@ -271,6 +280,7 @@ export default class SongRequestModule {
       }
     });
 
+    // !back: put song requests back on the wheel when someone returns
     this.client.registerCommandHandler('!back', async (payload) => {
       const songRequests = await queries.songRequestsByUser(payload.user);
       if (songRequests.length > 0) {

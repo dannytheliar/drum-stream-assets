@@ -15,27 +15,27 @@ export const songRequestsByUser = (user: string) => db.selectFrom('songRequests'
   .innerJoin('songs', 'songs.id', 'songRequests.songId')
   .select(['songRequests.id', 'songRequests.status', 'songs.artist', 'songs.title', 'songRequests.priority', 'songRequests.noShenanigans', 'songRequests.effectiveCreatedAt'])
   .where('status', 'in', ['processing', 'ready', 'hold'])
-  .where('requester', '=', user)
+  .where(db.fn<string>('lower', ['requester']), '=', user.toLowerCase())
   .orderBy('songRequests.effectiveCreatedAt asc')
   .execute();
 
 export const numOpenRequestsByUser = (user: string) => db.selectFrom('songRequests')
   .select(db.fn.countAll().as('count'))
-  .where('requester', '=', user)
+  .where(db.fn<string>('lower', ['requester']), '=', user.toLowerCase())
   .where('status', 'in', ['processing', 'ready', 'hold'])
   .execute();
 
 export const lastRequestTimeByUser = (user: string) => db.selectFrom('songRequests')
   .innerJoin('songs', 'songs.id', 'songRequests.songId')
   .select(['songRequests.createdAt', 'songs.duration'])
-  .where('requester', '=', user)
+  .where(db.fn<string>('lower', ['requester']), '=', user.toLowerCase())
   .where('status', '=', 'ready')
   .orderBy('songRequests.id desc')
   .execute();
 
 export const requestsByUserToday = (user: string) => db.selectFrom('songRequests')
   .select(['songRequests.id', 'songRequests.priority'])
-  .where('requester', '=', user)
+  .where(db.fn<string>('lower', ['requester']), '=', user.toLowerCase())
   .where('status', '!=', 'cancelled')
   .where('createdAt', '>', sql<any>`(select createdAt from streamHistory order by id desc limit 1)`)
   .orderBy('id desc')
