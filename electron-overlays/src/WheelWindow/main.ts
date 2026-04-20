@@ -699,8 +699,10 @@ window.ipcRenderer.on('wheel_toggle_visibility', async () => {
 
   if (!isCurrentlyVisible) {
     clearAllAnimationsAndTimeouts();
-  } else {
-    initializeWheel();
+    // re-initialize the wheel every time it's shown
+    // this means we cannot show the previous winner announcement,
+    // but chat will not complain about "not being on the wheel"
+    await initializeWheel();
   }
 });
 
