@@ -697,8 +697,9 @@ window.ipcRenderer.on('wheel_toggle_visibility', async () => {
   const isCurrentlyVisible = globalContainer.classList.contains('wheel-visible');
   globalContainer.classList.toggle('wheel-visible');
 
+  clearAllAnimationsAndTimeouts();
+  
   if (!isCurrentlyVisible) {
-    clearAllAnimationsAndTimeouts();
     // re-initialize the wheel every time it's shown
     // this means we cannot show the previous winner announcement,
     // but chat will not complain about "not being on the wheel"
