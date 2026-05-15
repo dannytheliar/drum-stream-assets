@@ -69,7 +69,9 @@ export type WebSocketServerMessage = {
 } | {
   type: 'wheel_toggle_visibility',
 } | {
-  type: 'wheel_toggle_mode',
+  type: 'wheel_toggle_hat_mode',
+} | {
+  type: 'wheel_toggle_first_request_mode',
 } | {
   type: 'wheel_spin',
 } | {

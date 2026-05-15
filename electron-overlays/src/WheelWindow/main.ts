@@ -62,6 +62,7 @@ let winnerTimeoutId: NodeJS.Timeout | null = null;
 
 // Wheel mode state
 let isHatWheelMode = false;
+let isFirstRequestMode = false;
 const ALL_HATS: string[] = [
   'Sloth',
   'Cow (NOT MILKERS STOP IT CHAT)',
@@ -685,7 +686,12 @@ async function initializeWheel() {
   if (isHatWheelMode) {
     createHatWheel(ALL_HATS);
   } else {
-    createSongRequesterWheel(await fetchSongRequesters());
+    const requesters = await fetchSongRequesters();
+    createSongRequesterWheel(
+      isFirstRequestMode
+        ? requesters.filter(requester => !requester.fulfilledToday)
+        : requesters
+    );
   }
 }
 
@@ -707,8 +713,13 @@ window.ipcRenderer.on('wheel_toggle_visibility', async () => {
   }
 });
 
-window.ipcRenderer.on('wheel_toggle_mode', async () => {
+window.ipcRenderer.on('wheel_toggle_hat_mode', async () => {
   isHatWheelMode = !isHatWheelMode;
+  initializeWheel();
+});
+
+window.ipcRenderer.on('wheel_toggle_first_request_mode', async () => {
+  isFirstRequestMode = !isFirstRequestMode;
   initializeWheel();
 });
 
