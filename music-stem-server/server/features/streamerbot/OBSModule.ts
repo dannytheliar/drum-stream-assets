@@ -28,6 +28,8 @@ export default class OBSModule {
     this.client.on('Obs.SceneChanged', this.handleOBSSceneChanged);
     this.client.on('Obs.StreamingStarted', this.handleOBSStreamingStarted);
     this.client.on('Obs.StreamingStopped', this.handleOBSStreamingStopped);
+    this.client.registerCommandHandler('!streamstart', this.handleOBSStreamingStarted);
+    this.client.registerCommandHandler('!streamend', this.handleOBSStreamingStopped);
   }
 
   private handleOBSSceneChanged = async (payload: StreamerbotEventPayload<"Obs.SceneChanged">) => {
@@ -38,14 +40,14 @@ export default class OBSModule {
     });
   };
 
-  private handleOBSStreamingStarted = async (payload: StreamerbotEventPayload<"Obs.StreamingStarted">) => {
+  private handleOBSStreamingStarted = async () => {
     await db.insertInto('streamHistory')
       .defaultValues()
       .execute();
     await db.updateTable('users').set({ currentBumpCount: 0 }).execute();
   };
 
-  private handleOBSStreamingStopped = async (payload: StreamerbotEventPayload<"Obs.StreamingStopped">) => {
+  private handleOBSStreamingStopped = async () => {
     const record = await queries.currentStreamHistory();
     await db.updateTable('streamHistory')
       .set('endedAt', sql`strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`)
