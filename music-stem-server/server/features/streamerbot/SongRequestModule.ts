@@ -278,7 +278,9 @@ export default class SongRequestModule {
         if (size.recentlyFulfilledPenalty > 0) parts.push(`Recently Played -${percent(size.recentlyFulfilledPenalty)}`);
         if (size.fulfilledPenalty > 0) parts.push(`${requester.fulfilledToday} Songs Today -${percent(size.fulfilledPenalty)}`);
         const totalSize = requesters.map(requester => calculateSliceScale(requester, viewer?.subscribed).size).reduce((a, b) => a + b, 0);
-        const buf = `@${payload.user} Slice size: ${percent(size.size)}, ${percent(size.size / totalSize)} of the wheel (${parts.join(', ')})`;
+        const buf =
+          `@${payload.user} ${payload.user === requester.name ? 'Your' : `${requester.name}'s`} slice size: ` +
+          `${percent(size.size)}, ${percent(size.size / totalSize)} of the wheel (${parts.join(', ')})`;
         await this.client.sendTwitchMessage(buf);
       } else {
         await this.client.sendTwitchMessage(`@${payload.user} You don't have any song requests!`);
