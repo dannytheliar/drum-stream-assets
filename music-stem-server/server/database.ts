@@ -103,6 +103,11 @@ interface UsersTable {
   money: Generated<number>;
 }
 
+interface BannedTermsTable {
+  id: Generated<number>;
+  term: string;
+}
+
 export type SongRequest = Selectable<SongRequestsTable>;
 export type NewSongRequest = Insertable<SongRequestsTable>;
 export type SongRequestUpdate = Updateable<SongRequestsTable>;
@@ -130,6 +135,9 @@ export type NameThatTuneScoreUpdate = Updateable<NameThatTuneScoresTable>;
 export type User = Selectable<UsersTable>;
 export type NewUser = Insertable<UsersTable>;
 export type UserUpdate = Updateable<UsersTable>;
+export type BannedTerm = Selectable<BannedTermsTable>;
+export type NewBannedTerm = Insertable<BannedTermsTable>;
+export type BannedTermUpdate = Updateable<BannedTermsTable>;
 
 export interface Database {
   songRequests: SongRequestsTable;
@@ -141,6 +149,7 @@ export interface Database {
   streamHistory: StreamHistoryTable;
   nameThatTuneScores: NameThatTuneScoresTable;
   users: UsersTable;
+  bannedTerms: BannedTermsTable;
 }
 
 export const db = new Kysely<Database>({

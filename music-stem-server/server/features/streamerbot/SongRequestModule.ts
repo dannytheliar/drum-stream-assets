@@ -39,10 +39,11 @@ export default class SongRequestModule {
   private successCallbacks: {
     [id: number]: (songTitle: string, numPreviousRequests: number, numPreviousRequestsBySameRequester: number) => void
   } = {};
-  private failureCallbacks: { [id: number]: (errorType: string) => void } = {};
+  private failureCallbacks: { [id: number]: (errorType: string, errorData?: any) => void } = {};
   private userCommandHistory: { [username: string]: [string, number][] } = {};
   private rejectedSongRequests: { [username: string]: string } = {};
   private removedSongRequests: { [username: string]: string } = {};
+  private bannedTerms: string[] = [];
 
   public static MINIMUM_QUERY_LENGTH = 4;
   public static PRIORITY_REQUEST_VALUE = 5;
@@ -53,6 +54,11 @@ export default class SongRequestModule {
   ) {
     this.client = client;
     this.wss = wss;
+
+    db.selectFrom('bannedTerms')
+      .selectAll()
+      .execute()
+      .then(records => this.bannedTerms = records.map(record => record.term));
 
     const beginSongRequest = async (payload: {
       rawInput: string,
@@ -72,6 +78,12 @@ export default class SongRequestModule {
         if (query.match(/dance of eternity/i) || danceOfEternityURLs.includes(query)) {
           await this.client.doAction('!danceofeternity');
           await this.client.sendTwitchMessage(`@${payload.user} probably not`);
+          return;
+        }
+
+        const bannedTermMatch = this.bannedTerms.find(term => query.match(new RegExp(term, 'i')));
+        if (bannedTermMatch) {
+          await this.client.sendTwitchMessage(`@${payload.user} Banned term found (${bannedTermMatch}), song request rejected`);
           return;
         }
 
@@ -344,6 +356,36 @@ export default class SongRequestModule {
         await this.client.sendTwitchMessage(`@${payload.userName} Thank you for gifting ${giftedCount === 1 ? 'a sub' : giftedCount + ' subs'}! ❤️💚💙`);
         // await this.client.sendTwitchMessage(`@${payload.userName} Thanks for gifting ${giftedCount === 1 ? 'a sub' : giftedCount + ' subs'}! ` +
         //   `dannyt75Heart You've been given ${giftedCount === 1 ? 'one song !bump' : giftedCount + ' !bumps'} to use whenever you want.`);
+      }
+    });
+
+    this.client.registerCommandHandler('!bannedterm', async (payload) => {
+      const words = payload.message.trim().split(' ');
+      const subcommand = words[0];
+      const term = words.slice(1).join(' ').trim();
+      if (!subcommand) {
+        await this.client.sendTwitchMessage(`Banned terms: ${this.bannedTerms.map(term => term).join(', ')}`);
+      } else if (subcommand.toLowerCase() === 'add') {
+        if (!term) {
+          await this.client.sendTwitchMessage(`Usage: !bannedterm add <term>`);
+          return;
+        }
+        await db.insertInto('bannedTerms').values({ term }).execute();
+        this.bannedTerms.push(term);
+        await this.client.sendTwitchMessage(`Added banned term: ${term}`);
+      } else if (subcommand.toLowerCase() === 'remove') {
+        if (!term) {
+          await this.client.sendTwitchMessage(`Usage: !bannedterm remove <term>`);
+          return;
+        } else if (!this.bannedTerms.find(t => t === term)) {
+          await this.client.sendTwitchMessage(`Banned term not found!`);
+          return;
+        }
+        await db.deleteFrom('bannedTerms').where('term', '=', term).execute();
+        this.bannedTerms = this.bannedTerms.filter(t => t !== term);
+        await this.client.sendTwitchMessage(`Removed banned term: ${term}`);
+      } else {
+        await this.client.sendTwitchMessage(`Usage: !bannedterm <add|remove> <term>`);
       }
     });
 
@@ -621,6 +663,18 @@ export default class SongRequestModule {
           downloadId: download!.id,
         }).execute();
       }
+      const matchingBannedTerm = this.bannedTerms.find(term =>
+        payload.artist.match(new RegExp(term, 'i')) ||
+        payload.title.match(new RegExp(term, 'i'))
+      );
+      if (matchingBannedTerm) {
+        await db.updateTable('songRequests')
+          .set({ status: 'cancelled' })
+          .where('id', '=', payload.id)
+          .execute();
+        this.failureCallbacks[payload.id]?.('BANNED_TERM', matchingBannedTerm);
+        return;
+      }
       await db.updateTable('songRequests')
         .set({ status: 'ready', songId: song.id })
         .where('id', '=', payload.id)
@@ -756,7 +810,7 @@ export default class SongRequestModule {
         }
         hasResponded = true;
       },
-      async (errorMessage) => {
+      async (errorMessage: string, errorData?: any) => {
         let message = 'There was an error adding your song request!';
         if (errorMessage === 'VIDEO_UNAVAILABLE') message = 'That video is not available.';
         if (errorMessage === 'UNSUPPORTED_DOMAIN') message = 'Only Spotify or YouTube links are supported.';
@@ -766,6 +820,7 @@ export default class SongRequestModule {
         if (errorMessage === 'AGE_RESTRICTED') message = 'The song downloader doesn\'t currently support age-restricted videos.';
         if (errorMessage === 'MINIMUM_VIEWS') message = `Videos with under ${options.minViews} views are not allowed.`;
         if (errorMessage === 'REQUEST_ALREADY_EXISTS') message = 'That song is already in the song request queue.';
+        if (errorMessage === 'BANNED_TERM') message = `Banned term found (${errorData}), song request rejected.`;
         await this.client.sendTwitchMessage(`@${requesterName} ${message}`);
         hasResponded = true;
         // TODO: rethrow to allow to catch for refund
