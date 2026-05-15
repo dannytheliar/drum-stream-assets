@@ -327,7 +327,7 @@ export default class SongRequestModule {
         requesters.some(requester => requester.name.toLowerCase() === viewer.login.toLowerCase())
       );
       await this.client.sendTwitchMessage(`MASS JEOPARDY! If your name is on this list and you are online, LET ME KNOW! (or your SRs will be removed keking )`);
-      await this.client.sendTwitchMessage(offlineRequesters.map(requester => `@${requester.name}`).join(', '));
+      await this.client.sendTwitchMessage(offlineRequesters.map(requester => `@${requester.display}`).join(', '));
     });
 
     this.client.registerCustomEventHandler<'Twitch.GiftSub' | 'Twitch.GiftBomb'>('add bumps', async (payload) => {
