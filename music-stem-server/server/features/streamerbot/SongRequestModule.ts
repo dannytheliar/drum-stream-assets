@@ -163,6 +163,27 @@ export default class SongRequestModule {
       );
     });
 
+    // !swap: swap the positions of two song requests
+    this.client.registerCommandHandler('!swap', async (payload) => {
+      const songRequests = await queries.songRequestsByUser(payload.user);
+      if (songRequests.length < 2) {
+        await this.client.sendTwitchMessage(`@${payload.user} You need two song requests to swap them!`);
+        return;
+      }
+      // SRs come in ordered by effectiveCreatedAt, so the earlier is already known
+      const earlierEffectiveCreatedAt = songRequests[0].effectiveCreatedAt;
+      const laterEffectiveCreatedAt = songRequests[1].effectiveCreatedAt;
+      await db.updateTable('songRequests')
+        .set({ effectiveCreatedAt: earlierEffectiveCreatedAt })
+        .where('id', '=', songRequests[1].id)
+        .execute();
+      await db.updateTable('songRequests')
+        .set({ effectiveCreatedAt: laterEffectiveCreatedAt })
+        .where('id', '=', songRequests[0].id)
+        .execute();
+      await this.client.sendTwitchMessage(`@${payload.user} Your two song requests have been swapped!`);
+    });
+
     // !remove: remove a given song request
     this.client.registerCommandHandler('!remove', async (payload) => {
       if (payload.message.toLowerCase() === 'all' || payload.command === '!removeall') {
