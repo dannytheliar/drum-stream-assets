@@ -19,6 +19,7 @@ export async function downloadFromSpotDL(query: string, outputPath: string): Pro
       [
         '--output', `"${join(outputPath, `${uuid}.{output-ext}`)}"`,
         '--skip-album-art',
+        '--use-official-api',
         '--client-id', process.env.SPOTIFY_CLIENT_ID!,
         '--client-secret', process.env.SPOTIFY_CLIENT_SECRET!,
         // m4a + bitrate disable + YouTube Premium cookies
