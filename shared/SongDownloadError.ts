@@ -27,7 +27,9 @@ export const SongDownloadErrorTypes = [
   'MINIMUM_QUERY_LENGTH',
   'TOO_MANY_REQUESTS',
   'REQUEST_ALREADY_EXISTS',
-  'DEMUCS_FAILURE'
+  'DEMUCS_FAILURE',
+  'BANNED_TERM',
+  'BANNED_ARTIST',
 ];
 // export default class SongDownloadError extends Error {
 //   type: SongDownloadErrorType;

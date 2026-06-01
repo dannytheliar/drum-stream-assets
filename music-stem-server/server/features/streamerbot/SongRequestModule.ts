@@ -821,6 +821,7 @@ export default class SongRequestModule {
         if (errorMessage === 'MINIMUM_VIEWS') message = `Videos with under ${options.minViews} views are not allowed.`;
         if (errorMessage === 'REQUEST_ALREADY_EXISTS') message = 'That song is already in the song request queue.';
         if (errorMessage === 'BANNED_TERM') message = `Banned term found (${errorData}), song request rejected.`;
+        if (errorMessage === 'BANNED_ARTIST') message = 'That artist is not allowed, song request rejected';
         await this.client.sendTwitchMessage(`@${requesterName} ${message}`);
         hasResponded = true;
         // TODO: rethrow to allow to catch for refund

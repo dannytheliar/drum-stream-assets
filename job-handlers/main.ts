@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { randomUUID } from 'crypto';
+import yaml from 'yaml';
 import downloadSong from './downloadSong';
 import getSongTags from './getSongTags';
 import demucs from './wrappers/demucs';
@@ -13,6 +14,10 @@ const VIDEO_EXTENSIONS = ['mkv', 'mp4', 'webm'];
 
 const i = new JobInterface();
 const cancelledRequests = new Set<number>();
+
+const songifyConfig = yaml.parse(await readFileSync(process.env.SONGIFY_CONFIG_PATH!, 'utf-8'));
+const songifyArtistBlacklist = songifyConfig.artistBlacklist as Array<{ id: string, name: string }>;
+const bannedArtistNames = new Set(songifyArtistBlacklist.map(a => a.name.toLowerCase()));
 
 await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
   console.log('SONG_REQUEST_CREATED', msg);
@@ -30,8 +35,13 @@ await i.listen(Queues.SONG_REQUEST_CREATED, async (msg) => {
   for (const index in downloadedSongPaths) {
     const path = downloadedSongPaths[index];
     const tags = await getSongTags(path);
+
     if (msg.maxDuration && tags.duration > msg.maxDuration) {
       throw new Error('TOO_LONG');
+    }
+
+    if (bannedArtistNames.has(String(tags.artist).toLowerCase())) {
+      throw new Error('BANNED_ARTIST');
     }
 
     const acoustidRecordingId = await getAcoustidRecordingId(path);
