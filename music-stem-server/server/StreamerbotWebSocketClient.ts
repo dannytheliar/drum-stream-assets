@@ -165,6 +165,28 @@ export default class StreamerbotWebSocketClient {
       });
       await this.sendTwitchMessage(`@${payload.user} Lyrics for this song are now marked as out-of-sync`);
     });
+    this.registerCommandHandler('!rename', async (payload) => {
+      // need two arguments, old name and new name
+      const args = payload.message.split(' ');
+      if (args.length !== 2) {
+        await this.sendTwitchMessage(`@${payload.user} Usage: !rename <old name> <new name>`);
+        return;
+      }
+      const [oldName, newName] = args;
+      await db.updateTable('users')
+        .set({ name: newName })
+        .where(db.fn<string>('lower', ['name']), '=', oldName.toLowerCase())
+        .execute();
+      await db.updateTable('songRequests')
+        .set({ requester: newName })
+        .where(db.fn<string>('lower', ['requester']), '=', oldName.toLowerCase())
+        .execute();
+      await db.updateTable('nameThatTuneScores')
+        .set({ name: newName })
+        .where(db.fn<string>('lower', ['name']), '=', oldName.toLowerCase())
+        .execute();
+      await this.sendTwitchMessage(`@${payload.user} Renamed "${oldName}" to "${newName}" in the database!`);
+    });
   }
 
   public registerCommandHandler(
