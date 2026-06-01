@@ -26,8 +26,8 @@ export default class OBSModule {
     this.wss = wss;
 
     this.client.on('Obs.SceneChanged', this.handleOBSSceneChanged);
-    this.client.on('Obs.StreamingStarted', this.handleOBSStreamingStarted);
-    this.client.on('Obs.StreamingStopped', this.handleOBSStreamingStopped);
+    this.client.on('Twitch.StreamOnline', this.handleOBSStreamingStarted);
+    this.client.on('Twitch.StreamOffline', this.handleOBSStreamingStopped);
     this.client.registerCommandHandler('!streamstart', this.handleOBSStreamingStarted);
     this.client.registerCommandHandler('!streamend', this.handleOBSStreamingStopped);
   }
