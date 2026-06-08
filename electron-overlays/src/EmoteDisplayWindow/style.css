@@ -1,0 +1,27 @@
+html, body, #app, #background {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.65);
+}
+
+#background {
+  opacity: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+#background.animating {
+  animation: fadeOut 5s linear;
+}
+
+@keyframes fadeOut {
+  from { opacity: 0.8; }
+  to { opacity: 0; }
+}

@@ -15,6 +15,7 @@ const windowStates: WindowState = {
   'heart-rate': false,
   'gamba': false,
   'wheel': false,
+  'emote-display': false,
 };
 
 // localStorage functions for window preferences

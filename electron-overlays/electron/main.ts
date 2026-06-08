@@ -154,6 +154,18 @@ function createGambaWindow() {
   return win;
 }
 
+function createEmoteDisplayWindow() {
+  const win = new BrowserWindow({
+    ...defaultWindowConfig,
+    title: 'Emote Display',
+    width: 440,
+    height: 260,
+  });
+  win.setIgnoreMouseEvents(true);
+  win.loadURL(process.env.VITE_DEV_SERVER_URL! + 'src/EmoteDisplayWindow/index.html');
+  return win;
+}
+
 function createWheelWindow() {
   const win = new BrowserWindow({
     ...defaultWindowConfig,
@@ -203,6 +215,7 @@ const managedWindows: { [key: string]: BrowserWindow | null } = {
   'heart-rate': null,
   'gamba': null,
   'wheel': null,
+  'emote-display': null,
 };
 // Connect to server WS to receive rebroadcast messages from remote client
 // Send all messages via IPC to individual windows
@@ -244,6 +257,7 @@ function getWindowCreator(windowKey: string): (() => BrowserWindow) | null {
     case 'heart-rate': return createHeartRateWindow;
     case 'gamba': return createGambaWindow;
     case 'wheel': return createWheelWindow;
+    case 'emote-display': return createEmoteDisplayWindow;
     default: return null;
   }
 }
