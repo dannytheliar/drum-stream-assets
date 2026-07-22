@@ -117,6 +117,22 @@ function createAudioDisplayWindow() {
   return win;
 }
 
+function createAudioDisplayStandaloneWindow() {
+    const win = new BrowserWindow({
+    ...defaultWindowConfig,
+    title: 'Audio Display Standalone',
+    width: 1920,
+    height: 200,
+    transparent: false,
+    frame: true,
+    backgroundColor: '#000000',
+  });
+  win.setIgnoreMouseEvents(false);
+  win.loadURL(process.env.VITE_DEV_SERVER_URL! + 'src/AudioDisplayWindow/index.html#standalone');
+
+  return win;
+}
+
 function createHeartRateWindow() {
   const win = new BrowserWindow({
     ...defaultWindowConfig,
@@ -209,6 +225,7 @@ const managedWindows: { [key: string]: BrowserWindow | null } = {
   'midi-overhead': null,
   'now-playing': null,
   'audio-display': null,
+  'audio-display-standalone': null,
   'song-history': null,
   'drum-triggers': null,
   'guess-the-song': null,
@@ -251,6 +268,7 @@ function getWindowCreator(windowKey: string): (() => BrowserWindow) | null {
     case 'midi-overhead': return () => createMIDINotesWindow('67a3ddcf3ae146f196b60e30f3e5268318705e99c51d639c4f3d22a24a709c55');
     case 'now-playing': return createNowPlayingWindow;
     case 'audio-display': return createAudioDisplayWindow;
+    case 'audio-display-standalone': return createAudioDisplayStandaloneWindow;
     case 'song-history': return createSongHistoryWindow;
     case 'drum-triggers': return createDrumTriggersWindow;
     case 'guess-the-song': return createGuessTheSongWindow;

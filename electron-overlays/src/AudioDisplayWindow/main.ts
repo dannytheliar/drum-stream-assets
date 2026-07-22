@@ -10,9 +10,9 @@ window.ipcRenderer.on('song_changed', (_, payload) => {
     progressColor: 'rgba(225, 220, 193, 0.7)',
     hideScrollbar: true,
     minPxPerSec: 300,
-    barHeight: 2.5,
+    barHeight: window.location.hash === '#standalone' ? 1 : 2.5,
     cursorWidth: 2,
-    height: 'auto',
+    height: window.location.hash === '#standalone' ? 300 : 'auto',
     url: `http://localhost:3000${payload.song.stemsPath}/drums.mp3`,
   });
   wavesurfer.setVolume(0);
