@@ -65,6 +65,7 @@ export default class MoneyModule {
       'nightbot',
       'danny_the_honest',
       'danny_the_liar',
+      'sery_bot',
     ];
     const eligibleViewers = this.viewers.filter(v =>
       v.online &&
