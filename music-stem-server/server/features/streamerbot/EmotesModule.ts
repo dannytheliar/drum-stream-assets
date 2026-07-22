@@ -23,6 +23,7 @@ export default class EmotesModule {
     // there are 7tv emotes for some commands
     '!sr',
     '!join',
+    '!play',
   ];
 
   private static readonly PIN_EMOTE_SCENE_NAMES = [
