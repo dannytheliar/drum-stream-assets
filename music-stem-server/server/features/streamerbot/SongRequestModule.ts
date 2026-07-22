@@ -124,6 +124,12 @@ export default class SongRequestModule {
       }
     });
 
+    this.client.on('Twitch.StreamOnline', async (payload) => {
+      // Clear cache of removed song requests from previous stream,
+      // if bot has been kept running the whole time
+      this.removedSongRequests = {};
+    });
+
     // !srfor: request a song for someone else (moderator command)
     this.client.registerCommandHandler('!srfor', async (payload) => {
       // Allow a moderator to request a song for someone else
