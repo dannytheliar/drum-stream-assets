@@ -1,6 +1,6 @@
 import * as amqp from 'amqplib';
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://drums:drums@192.168.86.89';
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://drums:drums@192.168.1.174';
 
 export type Payloads = {
   'song_request_created': {
