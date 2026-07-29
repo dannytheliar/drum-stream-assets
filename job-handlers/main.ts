@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { randomUUID } from 'crypto';
 import yaml from 'yaml';
+import Bottleneck from 'bottleneck';
 import downloadSong from './downloadSong';
 import getSongTags from './getSongTags';
 import demucs from './wrappers/demucs';
@@ -13,6 +14,9 @@ import { Queues, JobInterface } from '../shared/RabbitMQ';
 const VIDEO_EXTENSIONS = ['mkv', 'mp4', 'webm'];
 
 const i = new JobInterface();
+const limiter = new Bottleneck({
+  maxConcurrent: 1,
+});
 const cancelledRequests = new Set<number>();
 
 const songifyConfig = yaml.parse(await readFileSync(process.env.SONGIFY_CONFIG_PATH!, 'utf-8'));
@@ -73,7 +77,7 @@ await i.listen(Queues.SONG_REQUEST_DEDUPLICATED, async (msg) => {
   console.log('Running ffmpeg-normalize', msg.path, dstPath);
   execSync(`uv run ffmpeg-normalize "${msg.path}" -o "${dstPath}" -c:a aac -nt rms -t -16 -f`);
   console.log('Running demucs', dstPath);
-  const stemsPath = await demucs(dstPath, Paths.DEMUCS_OUTPUT_PATH, msg.ignoreDuplicates);
+  const stemsPath = await limiter.schedule(() => demucs(dstPath, Paths.DEMUCS_OUTPUT_PATH, msg.ignoreDuplicates));
 
   const extension = dstPath.substring(dstPath.lastIndexOf('.') + 1);
   const isVideo = VIDEO_EXTENSIONS.includes(extension.toLowerCase());
